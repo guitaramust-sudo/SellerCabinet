@@ -1,0 +1,105 @@
+$accent-yellow: #ffcc00;
+
+.sidebar {
+  width: 260px;
+  background: #ffffff;
+  padding: 24px;
+  border-radius: 12px;
+  flex-shrink: 0;
+  height: fit-content;
+
+  &__group {
+    margin-bottom: 24px;
+  }
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    font-weight: 600;
+    margin-bottom: 16px;
+    font-size: 15px;
+  }
+
+  &__options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  &__checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    cursor: pointer;
+
+    input {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+  }
+
+  &__divider {
+    height: 1px;
+    background: #f0f0f0;
+    margin: 20px 0;
+  }
+
+  &__toggle-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+
+  &__toggle-text {
+    font-size: 14px;
+    line-height: 1.2;
+  }
+
+  &__switch {
+    width: 44px;
+    height: 24px;
+    background: #e2e2e2;
+    border-radius: 12px;
+    position: relative;
+    border: none;
+    cursor: pointer;
+    transition: background 0.3s ease;
+
+    &.is-active {
+      background: #000000;
+    }
+
+    &-handle {
+      width: 20px;
+      height: 20px;
+      background: #fff;
+      border-radius: 50%;
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      transition: left 0.3s ease;
+    }
+
+    &.is-active &-handle {
+      left: 22px;
+    }
+  }
+
+  &__reset {
+    width: 100%;
+    padding: 12px;
+    background: transparent;
+    border: 2px solid $accent-yellow;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+
+    &:hover {
+      background: rgba($accent-yellow, 0.1);
+    }
+  }
+}
