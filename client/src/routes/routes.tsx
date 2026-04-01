@@ -20,9 +20,7 @@ const router = createBrowserRouter([
         element: <ProductViewPage />,
       },
       {
-        // Редактирование (пока захардкодили просто /edit,
-        // но в будущем лучше сделать "ads/:id/edit")
-        path: "edit",
+        path: "ads/:id/edit",
         element: <AdEditPage />,
       },
       {

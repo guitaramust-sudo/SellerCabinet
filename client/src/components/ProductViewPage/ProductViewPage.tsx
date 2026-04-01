@@ -1,41 +1,56 @@
+import { useParams, Link } from "react-router-dom";
+import { useGetAdByIdQuery } from "../../store/adsApi";
+import { getDisplayCategory } from "../../utils/categoryHelper";
+import { getParamLabel } from "../../utils/paramsMapper";
+import placeholderIcon from "../../assets/icons/placeholder.svg";
 import "./ProductViewPage.scss";
-import { Link } from "react-router-dom";
-
-// Временно захардкодим данные, потом прокинешь через props или Redux/Zustand
-const mockData = {
-  title: 'MacBook Pro 16"',
-  price: 64000,
-  publishedAt: "10 марта 22:39",
-  updatedAt: "10 марта 23:12",
-  description:
-    'Продаю свой MacBook Pro 16" (2021) на чипе M1 Pro. Состояние отличное, работал бережно. Мощности хватает на всё: от сложного монтажа до кода, при этом ноутбук почти не греется.',
-  characteristics: {
-    Тип: "Ноутбук",
-    Бренд: "Apple",
-    Модель: "M1 Pro",
-  },
-  requiresRevision: true,
-  missingFields: ["Цвет", "Состояние"],
-};
 
 export const ProductViewPage = () => {
+  const { id } = useParams<{ id: string }>();
+  const { data, isLoading, isError } = useGetAdByIdQuery(id || "");
+
+  if (isLoading) return <div className="product-view__loader">Загрузка...</div>;
+  if (isError || !data?.items?.[0])
+    return <div className="product-view__error">Не найдено</div>;
+
+  const ad = data.items[0];
+
+  const formatPrice = (price: number) =>
+    price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+
+  const formatDate = (timestamp?: number) => {
+    if (!timestamp) return "Не указана";
+    return new Date(timestamp).toLocaleString("ru-RU", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const characteristics = ad.params ? Object.entries(ad.params) : [];
+
+  const missingFields = characteristics
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    .filter(([_, value]) => !value)
+    .map(([key]) => getParamLabel(key));
+
   return (
     <div className="product-view">
       <header className="product-view__header">
         <div className="product-view__title-row">
-          <h1>{mockData.title}</h1>
-          <span className="product-view__price">
-            {mockData.price.toLocaleString("ru-RU")} ₽
-          </span>
+          <h1>{ad.title}</h1>
+          <span className="product-view__price">{formatPrice(ad.price)} ₽</span>
         </div>
 
+        {/* Возвращаем блок actions, чтобы кнопки и даты встали по местам */}
         <div className="product-view__actions">
-          <Link to="/edit" className="product-view__btn-edit">
-            Редактировать <span className="icon-edit">✎</span>
+          <Link to="edit" className="product-view__btn-edit">
+            Редактировать ✎
           </Link>
           <div className="product-view__dates">
-            <span>Опубликовано: {mockData.publishedAt}</span>
-            <span>Отредактировано: {mockData.updatedAt}</span>
+            <span>Опубликовано: {formatDate(ad.createdAt)}</span>
           </div>
         </div>
       </header>
@@ -43,28 +58,26 @@ export const ProductViewPage = () => {
       <div className="product-view__main">
         <div className="product-view__gallery">
           <div className="product-view__placeholder">
-            <svg
-              width="64"
-              height="64"
-              viewBox="0 0 24 24"
-              fill="#ccc"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path d="M21 19V5C21 3.9 20.1 3 19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19ZM8.5 13.5L11 16.51L14.5 12L19 18H5L8.5 13.5Z" />
-            </svg>
+            <img
+              src={placeholderIcon}
+              alt="Placeholder"
+              className="product-view__icon"
+            />
           </div>
         </div>
 
         <div className="product-view__info">
-          {mockData.requiresRevision && (
+          {/* Возвращаем правильную BEM-структуру для алерта */}
+          {(ad.needsRevision || missingFields.length > 0) && (
             <div className="product-view__alert">
               <div className="product-view__alert-icon">!</div>
               <div className="product-view__alert-content">
                 <strong>Требуются доработки</strong>
-                <p>У объявления не заполнены поля:</p>
+                <p>Проверьте следующие поля:</p>
                 <ul>
-                  {mockData.missingFields.map((field) => (
-                    <li key={field}>{field}</li>
+                  {!ad.description && <li>Описание</li>}
+                  {missingFields.map((label, i) => (
+                    <li key={i}>{label}</li>
                   ))}
                 </ul>
               </div>
@@ -74,12 +87,22 @@ export const ProductViewPage = () => {
           <div className="product-view__characteristics">
             <h2>Характеристики</h2>
             <div className="product-view__char-list">
-              {Object.entries(mockData.characteristics).map(([key, value]) => (
-                <div className="product-view__char-item" key={key}>
-                  <span className="char-key">{key}</span>
-                  <span className="char-value">{value}</span>
-                </div>
-              ))}
+              <div className="product-view__char-item">
+                <span className="char-key">Категория</span>
+                <span className="char-value">
+                  {getDisplayCategory(ad.category)}
+                </span>
+              </div>
+
+              {characteristics.map(
+                ([key, value]) =>
+                  value && (
+                    <div className="product-view__char-item" key={key}>
+                      <span className="char-key">{getParamLabel(key)}</span>
+                      <span className="char-value">{String(value)}</span>
+                    </div>
+                  ),
+              )}
             </div>
           </div>
         </div>
@@ -87,7 +110,7 @@ export const ProductViewPage = () => {
 
       <div className="product-view__description">
         <h2>Описание</h2>
-        <p>{mockData.description}</p>
+        <p>{ad.description || "Описание отсутствует"}</p>
       </div>
     </div>
   );
