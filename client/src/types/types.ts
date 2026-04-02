@@ -3,8 +3,8 @@ export interface AdItem {
   category: string;
   title: string;
   price: number;
-  createdAt: number; // Добавили
-  description?: string; // Добавили
+  createdAt: number;
+  description?: string;
   needsRevision?: boolean;
   // Добавляем params, чтобы TS понимал, что там могут быть любые строки/числа
   params?: Record<string, string | number | undefined>;
@@ -21,3 +21,13 @@ export interface FiltersState {
 }
 
 export type ViewMode = "grid" | "list";
+
+export interface AIRequest {
+  action: "improve" | "price";
+  text?: string;
+  title?: string;
+}
+
+export interface AIResponse {
+  result: string;
+}

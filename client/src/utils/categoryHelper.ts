@@ -6,7 +6,6 @@ export const CATEGORY_MAP = {
   real_estate: "Недвижимость",
 } as const;
 
-// Для отправки НА сервер (из русского в англ)
 export const getServiceCategory = (label: string): string => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const entry = Object.entries(CATEGORY_MAP).find(([_, v]) => v === label);

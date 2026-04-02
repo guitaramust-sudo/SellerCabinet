@@ -1,5 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import type { AdItem, FiltersState } from "../types/types";
+// Добавляем импорт AIRequest, если он у тебя в types.ts,
+// либо оставляем встроенное описание в мутации
+import type { AdItem, FiltersState, AIResponse } from "../types/types";
 import { getServiceCategory } from "../utils/categoryHelper";
 
 interface ItemsResponse {
@@ -7,45 +9,70 @@ interface ItemsResponse {
   total: number;
 }
 
+// Типизируем тело запроса для AI, чтобы не плодить inline-типы
+export interface AIRequest {
+  action: "improve" | "price";
+  text?: string;
+  title?: string;
+}
+
 export const adsApi = createApi({
   reducerPath: "adsApi",
   baseQuery: fetchBaseQuery({ baseUrl: "http://localhost:8080/" }),
-  tagTypes: ["Ads"], // Тэги нужны для авто-обновления данных после мутаций
+  tagTypes: ["Ads"],
   endpoints: (builder) => ({
+    // 1. Получение списка (Query: FiltersState -> ItemsResponse)
     getAds: builder.query<ItemsResponse, FiltersState>({
       query: (filters) => {
         const params = new URLSearchParams();
         if (filters.categories.length) {
           const serverCats = filters.categories
-            .map(getServiceCategory) // Используем общую логику
+            .map(getServiceCategory)
             .join(",");
           params.append("categories", serverCats);
         }
-        // ... остальное без изменений
+        // Добавь остальные фильтры (q, sort и т.д.) здесь, если нужно
         return `items?${params.toString()}`;
       },
       providesTags: ["Ads"],
     }),
 
-    // Получение одного объявления
+    // 2. Получение одного объявления (Query: string (id) -> ItemsResponse)
     getAdById: builder.query<ItemsResponse, string>({
       query: (id) => `items/${id}`,
-      providesTags: (_result, _error, id) => [{ type: "Ads", id }],
+      providesTags: (_result, _error, id) => [{ type: "Ads" as const, id }],
     }),
 
-    // Обновление (PUT)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    updateAd: builder.mutation<AdItem, { id: string; body: any }>({
+    // 3. Обновление объявления (Mutation: {id, body} -> AdItem)
+    // Избавляемся от any, заменяем на Partial<AdItem>
+    updateAd: builder.mutation<AdItem, { id: string; body: Partial<AdItem> }>({
       query: ({ id, body }) => ({
         url: `items/${id}`,
         method: "PUT",
         body,
       }),
-      invalidatesTags: ["Ads"],
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: "Ads" as const, id },
+        "Ads",
+      ],
+    }),
+
+    // 4. Генерация через ИИ (Mutation: AIRequest -> string)
+    generateAI: builder.mutation<string, AIRequest>({
+      query: (body) => ({
+        url: "items/generate-ai",
+        method: "POST",
+        body,
+      }),
+      // На сервере возвращается { result: string }, мы отдаем компоненту чистую строку
+      transformResponse: (response: AIResponse) => response.result,
     }),
   }),
 });
 
-// RTK Query сам сгенерировал эти хуки:
-export const { useGetAdsQuery, useGetAdByIdQuery, useUpdateAdMutation } =
-  adsApi;
+export const {
+  useGetAdsQuery,
+  useGetAdByIdQuery,
+  useUpdateAdMutation,
+  useGenerateAIMutation,
+} = adsApi;

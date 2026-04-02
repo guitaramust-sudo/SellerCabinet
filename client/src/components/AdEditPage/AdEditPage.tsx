@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useGetAdByIdQuery, useUpdateAdMutation } from "../../store/adsApi";
+import {
+  useGetAdByIdQuery,
+  useUpdateAdMutation,
+  useGenerateAIMutation,
+} from "../../store/adsApi";
 import "./AdEditPage.scss";
 import { getParamLabel } from "../../utils/paramsMapper";
 
@@ -14,7 +18,7 @@ interface FormState {
 }
 
 export const AdEditPage = () => {
-  const MAX_PRICE = 10_000_000_000; // 10 миллиардов
+  const MAX_PRICE = 10_000_000_000;
 
   const [priceError, setPriceError] = useState<string | null>(null);
 
@@ -34,12 +38,64 @@ export const AdEditPage = () => {
   });
 
   const [showAiPopup, setShowAiPopup] = useState(false);
+  const [isPriceLoading, setIsPriceLoading] = useState(false);
+  const [isDescLoading, setIsDescLoading] = useState(false);
+
+  // 1. Инициализируем мутацию
+  const [generateAI] = useGenerateAIMutation();
+
+  // Состояние для хранения текста от нейронки в попапе
+  const [aiResult, setAiResult] = useState<string | null>(null);
+
+  // Функция для запроса цены
+  const handleGetPriceAI = async () => {
+    try {
+      setAiResult(null); // Сбрасываем старый результат
+      setShowAiPopup(true); // Открываем попап (в нем будет лоадер)
+      setIsPriceLoading(true);
+
+      const result = await generateAI({
+        action: "price",
+        title: formData.title,
+      }).unwrap();
+
+      setAiResult(result);
+    } catch (err) {
+      console.error("AI Error:", err);
+      setAiResult("Ошибка: убедитесь, что Ollama запущена");
+    } finally {
+      setIsPriceLoading(false); // Выключаем
+    }
+  };
+
+  // Функция для улучшения описания
+  const handleImproveDescription = async () => {
+    try {
+      setIsDescLoading(true);
+      const result = await generateAI({
+        action: "improve",
+        text: formData.description,
+      }).unwrap();
+
+      // ПАРСЕР: Ищем блок "Описание:" или "Текст:"
+      // Если нейронка прислала структуру, берем только середину
+      const descRegex = /(?:описание|текст):\s*([\s\S]+?)(?=\n\w+:|$)/i;
+      const match = result.match(descRegex);
+
+      const finalDesc = match ? match[1].trim() : result.trim();
+
+      setFormData((prev) => ({ ...prev, description: finalDesc }));
+    } catch (err) {
+      alert(`Не удалось улучшить описание: ${err}`);
+    } finally {
+      setIsDescLoading(false);
+    }
+  };
 
   // 2. Синхронизация данных с сервера в стейт формы
   useEffect(() => {
     const ad = data?.items?.[0];
     if (ad) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFormData({
         category: ad.category || "",
         title: ad.title || "",
@@ -162,10 +218,12 @@ export const AdEditPage = () => {
 
             <button
               type="button"
-              className="ai-btn"
-              onClick={() => setShowAiPopup(!showAiPopup)}
+              className={`ai-btn ${isPriceLoading ? "ai-btn--loading" : ""}`}
+              onClick={handleGetPriceAI}
+              disabled={isPriceLoading || isDescLoading}
             >
-              <span className="ai-icon">⟳</span> Повторить запрос AI
+              <span className="ai-icon">✨</span>
+              {isPriceLoading ? "Думаю..." : "Узнать рыночную цену"}
             </button>
           </div>
         </div>
@@ -191,7 +249,19 @@ export const AdEditPage = () => {
 
         {/* Описание */}
         <div className="ad-edit__section">
-          <h2>Описание</h2>
+          <div className="section-header">
+            <h2>Описание</h2>
+            <button
+              type="button"
+              className="btn-magic"
+              onClick={handleImproveDescription}
+              disabled={
+                isDescLoading || isPriceLoading || !formData.description
+              }
+            >
+              {isDescLoading ? "Улучшаю..." : "Улучшить описание нейронкой"}
+            </button>
+          </div>
           <div className="textarea-wrapper">
             <textarea
               value={formData.description}
@@ -222,18 +292,60 @@ export const AdEditPage = () => {
 
       {/* Рендер попапа AI, если он нужен (логика внутри) */}
       {showAiPopup && (
-        <div className="ai-popup-overlay" onClick={() => setShowAiPopup(false)}>
+        <div
+          className="ai-popup-overlay"
+          onClick={() => {
+            // Закрываем только если загрузка цены НЕ идет
+            if (!isPriceLoading) setShowAiPopup(false);
+          }}
+        >
           <div className="ai-popup" onClick={(e) => e.stopPropagation()}>
-            <h3>Рекомендация AI</h3>
-            <p>Средняя цена для данной модели: 125 000 ₽</p>
-            <button
-              onClick={() => {
-                updateField("price", "125000");
-                setShowAiPopup(false);
-              }}
-            >
-              Применить
+            <button className="close-btn" onClick={() => setShowAiPopup(false)}>
+              ×
             </button>
+            <h3>Рекомендация AI</h3>
+
+            {/* ИСПОЛЬЗУЕМ ТОЛЬКО isPriceLoading */}
+            {isPriceLoading ? (
+              <div className="ai-loader">
+                <div className="spinner"></div>
+                <p>Анализирую рынок через Ollama...</p>
+              </div>
+            ) : (
+              <>
+                <div
+                  className="ai-result-text"
+                  style={{ whiteSpace: "pre-line" }}
+                >
+                  {aiResult}
+                </div>
+                <div className="ai-popup-actions">
+                  <button
+                    className="btn-apply"
+                    onClick={() => {
+                      if (!aiResult) return;
+
+                      const match = aiResult.match(/(?:цена):\s*(\d+)/i);
+
+                      if (match && match[1]) {
+                        updateField("price", match[1]);
+                        setShowAiPopup(false);
+                      } else {
+                        alert("Цена не найдена в ответе");
+                      }
+                    }}
+                  >
+                    Применить цену
+                  </button>
+                  <button
+                    className="btn-cancel"
+                    onClick={() => setShowAiPopup(false)}
+                  >
+                    Закрыть
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
