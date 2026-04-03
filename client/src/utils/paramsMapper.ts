@@ -39,22 +39,34 @@ export const getParamLabel = (key: string, category?: string): string => {
 
 // Словарь для ПЕРЕВОДА ЗНАЧЕНИЙ
 const VALUE_LABELS: Record<string, string> = {
-  // Типы недвижимости
+  // --- Электроника ---
+  phone: "Смартфон",
+  laptop: "Ноутбук",
+  tablet: "Планшет",
+  camera: "Фотоаппарат",
+  console: "Игровая приставка",
+
+  // --- Типы недвижимости ---
   flat: "Квартира",
   house: "Дом",
   cottage: "Коттедж",
+  room: "Комната",
 
-  // Состояние
+  // --- Состояние ---
   new: "Новое",
   used: "Б/У",
 
-  // Коробка передач
+  // --- Коробка передач ---
   manual: "Механика",
   automatic: "Автомат",
+  robot: "Робот",
+  variator: "Вариатор",
 
-  // Типы кузова (если нужно)
+  // --- Типы кузова ---
   sedan: "Седан",
   hatchback: "Хэтчбек",
+  suv: "Внедорожник",
+  coupe: "Купе",
 };
 
 export const getValueLabel = (

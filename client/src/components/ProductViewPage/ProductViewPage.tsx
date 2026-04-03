@@ -8,6 +8,7 @@ import placeholderIcon from "../../assets/icons/placeholder.svg";
 import { Loader } from "../Loader/Loader";
 import { ErrorState } from "../ErrorState/ErrorState";
 import { useTheme } from "../../hooks/useTheme"; // Хук темы
+import { getValueLabel } from "../../utils/paramsMapper";
 import "./ProductViewPage.scss";
 
 export const ProductViewPage: React.FC = () => {
@@ -109,19 +110,27 @@ export const ProductViewPage: React.FC = () => {
                     {getDisplayCategory(ad.category)}
                   </span>
                 </div>
-                {paramsEntries.map(
-                  ([key, value]) =>
-                    value && (
-                      <div className="product-view__char-item" key={key}>
-                        <span className="char-key">{getParamLabel(key)}</span>
-                        <span className="char-value">
-                          {key === "enginePower"
-                            ? `${value} л.с.`
-                            : String(value)}
-                        </span>
-                      </div>
-                    ),
-                )}
+                {paramsEntries.map(([key, value]) => {
+                  // Пропускаем пустые значения
+                  if (value === "" || value === null || value === undefined)
+                    return null;
+
+                  // ПЕРЕДАЕМ КАТЕГОРИЮ, чтобы не было "Типа устройства" в квартирах
+                  const label = getParamLabel(key, ad.category);
+
+                  // ИСПОЛЬЗУЕМ ТВОЙ НОВЫЙ ХЕЛПЕР для перевода значений (flat -> Квартира)
+                  const displayValue = getValueLabel(value);
+
+                  return (
+                    <div className="product-view__char-item" key={key}>
+                      <span className="char-key">{label}</span>
+                      <span className="char-value">
+                        {/* Обработка специфических единиц измерения */}
+                        {key === "enginePower" ? `${value} л.с.` : displayValue}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>

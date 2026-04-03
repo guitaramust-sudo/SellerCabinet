@@ -17,7 +17,7 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
   return (
     <div className="error-container">
       <Result
-        status="error" // Антовский статус (рисует красный крестик)
+        status="error"
         title={title}
         subTitle={subTitle}
         extra={[
