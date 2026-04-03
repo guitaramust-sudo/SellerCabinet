@@ -78,7 +78,7 @@ export const adsApi = createApi({
         body,
       }),
       // Инвалидируем конкретный ID и список LIST, чтобы всё перерисовывалось
-      invalidatesTags: (_result, _error, { id }) => [
+      invalidatesTags: (_result, _Яerror, { id }) => [
         { type: "Ads", id },
         { type: "Ads", id: "LIST" },
       ],

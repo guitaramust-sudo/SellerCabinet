@@ -258,20 +258,13 @@
   },
   {
     "id": 20,
-    "category": "auto",
+    "category": "real_estate",
     "title": "Стиральная машина. На гарантии",
     "description": "gwvghg",
     "price": 373732781,
     "createdAt": "2026-03-11T00:00:00.000Z",
-    "updatedAt": "2026-04-03T16:21:41.380Z",
-    "params": {
-      "brand": "vvv",
-      "model": "fwfssf",
-      "yearOfManufacture": 5,
-      "transmission": "automatic",
-      "mileage": 12,
-      "enginePower": 12
-    }
+    "updatedAt": "2026-04-03T18:35:39.053Z",
+    "params": {}
   },
   {
     "id": 21,
