@@ -1,22 +1,200 @@
-$bg-color: #f6f6f6;
+// --- ПЕРЕМЕННЫЕ (Теперь динамические) ---
+:root {
+  --bg-color: #f6f6f6;
+  --primary-color: #ffcc00;
+  --border-color: #e2e2e2;
+  --text-main: #000;
+  --text-secondary: #8c8c8c;
+  --white: #fff;
+  --switch-active: #f0f0f0;
+}
+
+// Эти стили должны быть ВНЕ любых селекторов компонентов
+html,
+body,
+#root {
+  // Растягиваем на всю высоту экрана, чтобы не было белых полос снизу
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  // Плавный переход, чтобы глазам было приятно при переключении
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+
+  // Дефолтный фон для светлой темы
+  background-color: #f5f5f5;
+  color: #1a1a1a;
+
+  &.dark-theme {
+    // Используй ровно тот же цвет, что в переменных ProductViewPage
+    background-color: #141414;
+    color: #eeeeee;
+  }
+}
+
+// Убедись, что #root не перекрывает фон своим цветом
+#root {
+  background-color: inherit;
+}
+
+// Когда на body висит этот класс, переменные меняют значения
+body.dark-theme {
+  --bg-color: #141414;
+  --primary-color: #ffcc00;
+  --border-color: #303030;
+  --text-main: #ffffff;
+  --text-secondary: #a0a0a0;
+  --white: #1f1f1f;
+  --switch-active: #333333;
+}
+
+$base-size: 16;
+
+@function rem($px) {
+  @return ($px / $base-size) * 1rem;
+}
 
 * {
   text-decoration: none;
+  box-sizing: border-box;
 }
 
 .ads-page {
   min-height: 100vh;
-  background-color: $bg-color;
-  padding: 40px 20px;
+  background-color: var(--bg-color); // Юзаем переменную
+  color: var(--text-main); // Юзаем переменную
+  padding: rem(40) rem(20);
+  transition: all 0.2s ease; // Чтоб плавно переключалось
+
+  @media (max-width: 768px) {
+    padding: rem(20) rem(10);
+  }
+
+  &__header {
+    margin-bottom: rem(24);
+    h1 {
+      font-size: rem(28);
+      margin: 0;
+      color: var(--text-main);
+      @media (max-width: 480px) {
+        font-size: rem(22);
+      }
+    }
+    p {
+      color: var(--text-secondary);
+      margin: rem(8) 0 0;
+      font-size: rem(14);
+    }
+  }
+
+  &__toolbar {
+    display: flex;
+    gap: rem(16);
+    margin-bottom: rem(24);
+    align-items: center;
+
+    @media (max-width: 768px) {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  }
+
+  &__search {
+    flex: 1;
+    input {
+      width: 100%;
+      padding: rem(12) rem(16);
+      background-color: var(--white);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      border-radius: rem(8);
+      font-size: rem(14);
+      transition: all 0.2s;
+      &:focus {
+        outline: rem(2) solid var(--primary-color);
+        border-color: transparent;
+      }
+      &::placeholder {
+        color: var(--text-secondary);
+      }
+    }
+  }
+
+  &__controls {
+    display: flex;
+    gap: rem(12);
+    @media (max-width: 480px) {
+      flex-wrap: wrap;
+      & > * {
+        flex: 1;
+      }
+    }
+  }
+
+  &__view-switch {
+    display: flex;
+    background: var(--white);
+    padding: rem(4);
+    border-radius: rem(8);
+    border: 1px solid var(--border-color);
+
+    @media (max-width: 480px) {
+      display: none;
+    }
+
+    button {
+      padding: rem(6) rem(12);
+      border: none;
+      background: none;
+      color: var(--text-main);
+      cursor: pointer;
+      border-radius: rem(6);
+      transition: background 0.2s;
+      &.active {
+        background: var(--switch-active);
+      }
+    }
+  }
+
+  &__sort {
+    padding: rem(8) rem(16);
+    border-radius: rem(8);
+    border: 1px solid var(--border-color);
+    background: var(--white);
+    color: var(--text-main);
+    cursor: pointer;
+    font-size: rem(14);
+  }
+
+  &__layout {
+    display: flex;
+    gap: rem(32);
+    @media (max-width: 768px) {
+      flex-direction: column;
+      gap: rem(20);
+    }
+  }
+
+  &__content {
+    flex: 1;
+  }
 
   &__container {
-    max-width: 1200px;
-    margin: 0 auto;
     display: grid;
-    gap: 16px;
+    gap: rem(16);
 
     &.is-grid {
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(rem(200), 1fr));
+      @media (min-width: 1200px) {
+        grid-template-columns: repeat(5, 1fr);
+      }
+      @media (max-width: 480px) {
+        grid-template-columns: 1fr;
+      }
     }
 
     &.is-list {
@@ -24,108 +202,59 @@ $bg-color: #f6f6f6;
     }
   }
 
-  &__header {
-    margin-bottom: 24px;
-    h1 {
-      font-size: 28px;
-      margin: 0;
-    }
-    p {
-      color: #8c8c8c;
-      margin: 8px 0 0;
-    }
-  }
-
-  &__toolbar {
-    display: flex;
-    gap: 16px;
-    margin-bottom: 24px;
-    align-items: center;
-  }
-
-  &__search {
-    flex: 1;
-    input {
-      width: 98%;
-      padding: 12px 16px;
-      border: 1px solid #e2e2e2;
-      border-radius: 8px;
-      font-size: 14px;
-      &:focus {
-        outline: 2px solid #ffcc00;
-        border-color: transparent;
-      }
-    }
-  }
-
-  &__controls {
-    display: flex;
-    gap: 12px;
-  }
-
-  &__view-switch {
-    display: flex;
-    background: #fff;
-    padding: 4px;
-    border-radius: 8px;
-    border: 1px solid #e2e2e2;
-    button {
-      padding: 6px 12px;
-      border: none;
-      background: none;
-      cursor: pointer;
-      border-radius: 6px;
-      &.active {
-        background: #f0f0f0;
-      }
-    }
-  }
-
-  &__sort {
-    padding: 8px 16px;
-    border-radius: 8px;
-    border: 1px solid #e2e2e2;
-    background: #fff;
-    cursor: pointer;
-  }
-
-  &__layout {
-    display: flex;
-    gap: 32px;
-  }
-
-  &__content {
-    flex: 1;
-  }
-
-  &__grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 20px;
-  }
-
   &__empty {
     text-align: center;
-    padding: 60px;
-    background: #fff;
-    border-radius: 12px;
-    color: #8c8c8c;
+    padding: rem(60);
+    background: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: rem(12);
+    color: var(--text-secondary);
+    font-size: rem(16);
+  }
+
+  &--loading {
+    .ads-page__container {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+  }
+}
+
+.sidebar {
+  width: rem(250);
+  flex-shrink: 0;
+
+  @media (max-width: 768px) {
+    width: 100%;
+  }
+
+  &__item {
+    padding: rem(10) rem(16);
+    background: var(--white);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    border-radius: rem(8);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+    font-size: rem(14);
+
+    &:hover {
+      border-color: var(--primary-color);
+    }
+
+    &--active {
+      background: var(--primary-color);
+      border-color: var(--primary-color);
+      color: #000; // На желтом черный лучше читается
+      font-weight: 600;
+    }
   }
 }
 
 .ads-page__pagination {
-  margin-top: 40px;
+  margin-top: rem(40);
   display: flex;
   justify-content: center;
-  padding-bottom: 20px;
-}
-
-// Если хочешь, чтобы во время запроса (isFetching)
-// контент становился полупрозрачным:
-.ads-page--loading {
-  .ads-page__container {
-    opacity: 0.5;
-    pointer-events: none;
-    transition: opacity 0.2s ease;
-  }
+  padding-bottom: rem(20);
 }

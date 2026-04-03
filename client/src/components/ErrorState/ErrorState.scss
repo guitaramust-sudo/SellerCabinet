@@ -1,0 +1,28 @@
+.error-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  min-height: 400px;
+  padding: 40px;
+
+  .ant-result-title {
+    font-weight: 700;
+    color: #333;
+  }
+
+  .ant-result-subtitle {
+    color: #666;
+    font-size: 16px;
+  }
+
+  .btn-retry {
+    background: #ff4d4f;
+    border-color: #ff4d4f;
+
+    &:hover {
+      background: #ff7875 !important;
+      border-color: #ff7875 !important;
+    }
+  }
+}

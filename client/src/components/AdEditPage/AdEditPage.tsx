@@ -1,14 +1,20 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { ConfigProvider, theme, Spin } from "antd"; // Добавили тему
+import { LoadingOutlined } from "@ant-design/icons";
 import {
   useGetAdByIdQuery,
   useUpdateAdMutation,
   useGenerateAIMutation,
 } from "../../store/adsApi";
-import "./AdEditPage.scss";
 import { getParamLabel } from "../../utils/paramsMapper";
 import { CATEGORY_FIELDS } from "../../utils/categoryFields";
 import type { Category, AdItem } from "../../types/types";
+import { Loader } from "../Loader/Loader";
+import { ErrorState } from "../ErrorState/ErrorState";
+import { useTheme } from "../../hooks/useTheme"; // Твой хук темы
+import "./AdEditPage.scss";
 
 interface FormState {
   category: string;
@@ -19,7 +25,8 @@ interface FormState {
 }
 
 export const AdEditPage = () => {
-  const MAX_PRICE = 10_000_000_000;
+  const { isDarkMode } = useTheme(); // Получаем состояние темы
+  const MAX_PRICE = 100000000;
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
@@ -43,7 +50,6 @@ export const AdEditPage = () => {
     params: {},
   });
 
-  // Получаем конфигурацию полей для текущей категории
   const currentFieldsConfig = CATEGORY_FIELDS[formData.category] || [];
 
   useEffect(() => {
@@ -53,7 +59,6 @@ export const AdEditPage = () => {
         title: data.title || "",
         price: String(data.price || ""),
         description: data.description || "",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         params: (data.params as Record<string, any>) || {},
       });
     }
@@ -71,12 +76,10 @@ export const AdEditPage = () => {
         return setPriceError("Максимальная цена — 10 млрд ₽");
     }
 
-    // ЭТО НУЖНО ДОБАВИТЬ:
     if (field === "category") {
       setFormData((prev) => ({
         ...prev,
         category: value,
-        // Очищаем params полностью или оставляем только те, что были в новой категории (лучше очистить)
         params: {},
       }));
       return;
@@ -138,7 +141,6 @@ export const AdEditPage = () => {
 
     const preparedParams = Object.entries(formData.params).reduce(
       (acc, [key, value]) => {
-        // Отправляем пустую строку, чтобы "затереть" данные на сервере
         if (value === "" || value === null) {
           acc[key] = "";
           return acc;
@@ -164,196 +166,205 @@ export const AdEditPage = () => {
       alert(`Ошибка сервера: ${err.data?.error || "Неизвестная ошибка"}`);
     }
   };
-  if (isFetching)
-    return <div className="ad-edit__loading">Загрузка данных...</div>;
-  if (isError)
-    return <div className="ad-edit__error">Ошибка загрузки объявления</div>;
+
+  if (isFetching) return <Loader />;
+  if (isError) return <ErrorState />;
 
   return (
-    <div className={`ad-edit ${isUpdating ? "ad-edit--updating" : ""}`}>
-      <h1>Редактирование объявления</h1>
+    <ConfigProvider
+      theme={{
+        algorithm: isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm,
+      }}
+    >
+      <div className={`ad-edit ${isUpdating ? "ad-edit--updating" : ""}`}>
+        <h1>Редактирование объявления</h1>
 
-      <form className="ad-edit__form" onSubmit={handleSubmit}>
-        <div className="ad-edit__section">
-          <div className="input-group">
-            <label>Категория</label>
-            <select
-              value={formData.category}
-              onChange={(e) => updateField("category", e.target.value)}
-            >
-              <option value="">Выберите категорию</option>
-              <option value="electronics">Электроника</option>
-              <option value="auto">Авто</option>
-              <option value="real_estate">Недвижимость</option>
-            </select>
-          </div>
+        <form className="ad-edit__form" onSubmit={handleSubmit}>
+          <div className="ad-edit__section">
+            <div className="input-group">
+              <label>Категория</label>
+              <select
+                value={formData.category}
+                onChange={(e) => updateField("category", e.target.value)}
+              >
+                <option value="">Выберите категорию</option>
+                <option value="electronics">Электроника</option>
+                <option value="auto">Авто</option>
+                <option value="real_estate">Недвижимость</option>
+              </select>
+            </div>
 
-          <div className="input-group">
-            <label>
-              <span className="required">*</span> Название
-            </label>
-            <input
-              type="text"
-              value={formData.title}
-              onChange={(e) => updateField("title", e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="input-group price-group">
-            <label>
-              <span className="required">*</span> Цена (₽)
-            </label>
-            <div className="input-wrapper">
+            <div className="input-group">
+              <label>
+                <span className="required">*</span> Название
+              </label>
               <input
-                type="number"
-                className={priceError ? "input-error" : ""}
-                value={formData.price}
-                onChange={(e) => updateField("price", e.target.value)}
+                type="text"
+                value={formData.title}
+                onChange={(e) => updateField("title", e.target.value)}
                 required
               />
-              {priceError && (
-                <span className="error-message">{priceError}</span>
+            </div>
+
+            <div className="input-group price-group">
+              <label>
+                <span className="required">*</span> Цена (₽)
+              </label>
+              <div className="input-wrapper">
+                <input
+                  type="number"
+                  className={priceError ? "input-error" : ""}
+                  value={formData.price}
+                  onChange={(e) => updateField("price", e.target.value)}
+                  required
+                />
+                {priceError && (
+                  <span className="error-message">{priceError}</span>
+                )}
+              </div>
+              <button
+                type="button"
+                className={`ai-btn ${isPriceLoading ? "ai-btn--loading" : ""}`}
+                onClick={handleGetPriceAI}
+                disabled={isPriceLoading || isDescLoading}
+              >
+                {isPriceLoading ? "Думаю..." : "Узнать рыночную цену"}
+              </button>
+            </div>
+          </div>
+
+          {currentFieldsConfig.length > 0 && (
+            <div className="ad-edit__section">
+              <h2>Характеристики</h2>
+              {currentFieldsConfig.map((field) => (
+                <div className="input-group" key={field.key}>
+                  <label>{getParamLabel(field.key, formData.category)}</label>
+                  <div className="input-wrapper">
+                    {field.type === "select" ? (
+                      <select
+                        value={formData.params[field.key] ?? ""}
+                        onChange={(e) => updateParam(field.key, e.target.value)}
+                      >
+                        <option value="">Не выбрано</option>
+                        {field.options?.map((opt) => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        type={field.type === "number" ? "number" : "text"}
+                        value={formData.params[field.key] ?? ""}
+                        placeholder={getParamLabel(
+                          field.key,
+                          formData.category,
+                        )}
+                        onChange={(e) => updateParam(field.key, e.target.value)}
+                      />
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="ad-edit__section">
+            <div className="section-header">
+              <h2>Описание</h2>
+              <button
+                type="button"
+                className="btn-magic"
+                onClick={handleImproveDescription}
+                disabled={isDescLoading || !formData.description}
+              >
+                {isDescLoading ? "Улучшаю..." : "Улучшить описание нейросетью"}
+              </button>
+            </div>
+            <div className="textarea-wrapper">
+              <textarea
+                value={formData.description}
+                onChange={(e) => updateField("description", e.target.value)}
+                maxLength={1000}
+                placeholder="Введите описание товара..."
+              />
+              <span className="char-count">
+                {formData.description.length} / 1000
+              </span>
+            </div>
+          </div>
+
+          <div className="ad-edit__footer">
+            <button type="submit" className="btn-primary" disabled={isUpdating}>
+              {isUpdating ? "Сохранение..." : "Сохранить"}
+            </button>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => navigate(-1)}
+            >
+              Отменить
+            </button>
+          </div>
+        </form>
+
+        {showAiPopup && (
+          <>
+            <div
+              className="ai-popup-overlay"
+              onClick={() => !isPriceLoading && setShowAiPopup(false)}
+            />
+            <div className="ai-popup" onClick={(e) => e.stopPropagation()}>
+              <button
+                type="button"
+                className="close-btn"
+                onClick={() => setShowAiPopup(false)}
+              >
+                ×
+              </button>
+              <h3>Рекомендация AI</h3>
+              {isPriceLoading ? (
+                <div className="ai-loader">
+                  <Spin
+                    indicator={
+                      <LoadingOutlined style={{ fontSize: 32 }} spin />
+                    }
+                  />
+                  <p style={{ marginTop: 16 }}>Анализирую рынок...</p>
+                </div>
+              ) : (
+                <>
+                  <div className="ai-result-text">{aiResult}</div>
+                  <div className="ai-popup-actions">
+                    <button
+                      type="button"
+                      className="btn-apply"
+                      onClick={() => {
+                        const match = aiResult?.match(/(?:цена):\s*(\d+)/i);
+                        if (match?.[1]) {
+                          updateField("price", match[1]);
+                          setShowAiPopup(false);
+                        } else {
+                          alert("Цена не найдена в ответе");
+                        }
+                      }}
+                    >
+                      Применить цену
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-cancel"
+                      onClick={() => setShowAiPopup(false)}
+                    >
+                      Закрыть
+                    </button>
+                  </div>
+                </>
               )}
             </div>
-            <button
-              type="button"
-              className={`ai-btn ${isPriceLoading ? "ai-btn--loading" : ""}`}
-              onClick={handleGetPriceAI}
-              disabled={isPriceLoading || isDescLoading}
-            >
-              <span className="ai-icon">✨</span>
-              {isPriceLoading ? "Думаю..." : "Узнать рыночную цену"}
-            </button>
-          </div>
-        </div>
-
-        {/* Динамические характеристики на основе CATEGORY_FIELDS */}
-        {currentFieldsConfig.length > 0 && (
-          <div className="ad-edit__section">
-            <h2>Характеристики</h2>
-            {currentFieldsConfig.map((field) => (
-              <div className="input-group" key={field.key}>
-                {/* Передаем formData.category вторым аргументом */}
-                <label>{getParamLabel(field.key, formData.category)}</label>
-
-                <div className="input-wrapper">
-                  {field.type === "select" ? (
-                    <select
-                      value={formData.params[field.key] ?? ""}
-                      onChange={(e) => updateParam(field.key, e.target.value)}
-                    >
-                      <option value="">Не выбрано</option>
-                      {field.options?.map((opt) => (
-                        <option key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <input
-                      type={field.type === "number" ? "number" : "text"}
-                      value={formData.params[field.key] ?? ""}
-                      placeholder={getParamLabel(field.key, formData.category)}
-                      onChange={(e) => updateParam(field.key, e.target.value)}
-                    />
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
+          </>
         )}
-
-        <div className="ad-edit__section">
-          <div className="section-header">
-            <h2>Описание</h2>
-            <button
-              type="button"
-              className="btn-magic"
-              onClick={handleImproveDescription}
-              disabled={isDescLoading || !formData.description}
-            >
-              {isDescLoading ? "Улучшаю..." : "Улучшить описание нейронкой"}
-            </button>
-          </div>
-          <div className="textarea-wrapper">
-            <textarea
-              value={formData.description}
-              onChange={(e) => updateField("description", e.target.value)}
-              maxLength={1000}
-              placeholder="Введите описание товара..."
-            />
-            <span className="char-count">
-              {formData.description.length} / 1000
-            </span>
-          </div>
-        </div>
-
-        <div className="ad-edit__footer">
-          <button type="submit" className="btn-primary" disabled={isUpdating}>
-            {isUpdating ? "Сохранение..." : "Сохранить"}
-          </button>
-          <button
-            type="button"
-            className="btn-secondary"
-            onClick={() => navigate(-1)}
-          >
-            Отменить
-          </button>
-        </div>
-      </form>
-
-      {/* AI Popup */}
-      {showAiPopup && (
-        <div
-          className="ai-popup-overlay"
-          onClick={() => !isPriceLoading && setShowAiPopup(false)}
-        >
-          <div className="ai-popup" onClick={(e) => e.stopPropagation()}>
-            <button className="close-btn" onClick={() => setShowAiPopup(false)}>
-              ×
-            </button>
-            <h3>Рекомендация AI</h3>
-            {isPriceLoading ? (
-              <div className="ai-loader">
-                <div className="spinner"></div>
-                <p>Анализирую рынок...</p>
-              </div>
-            ) : (
-              <>
-                <div
-                  className="ai-result-text"
-                  style={{ whiteSpace: "pre-line" }}
-                >
-                  {aiResult}
-                </div>
-                <div className="ai-popup-actions">
-                  <button
-                    className="btn-apply"
-                    onClick={() => {
-                      const match = aiResult?.match(/(?:цена):\s*(\d+)/i);
-                      if (match?.[1]) {
-                        updateField("price", match[1]);
-                        setShowAiPopup(false);
-                      } else {
-                        alert("Цена не найдена в ответе");
-                      }
-                    }}
-                  >
-                    Применить цену
-                  </button>
-                  <button
-                    className="btn-cancel"
-                    onClick={() => setShowAiPopup(false)}
-                  >
-                    Закрыть
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
+      </div>
+    </ConfigProvider>
   );
 };

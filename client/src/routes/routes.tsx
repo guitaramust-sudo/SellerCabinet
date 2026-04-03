@@ -3,6 +3,7 @@ import App from "../App";
 import { MainAdPage } from "../components/MainAdPage/MainAdPage";
 import { ProductViewPage } from "../components/ProductViewPage/ProductViewPage";
 import { AdEditPage } from "../components/AdEditPage/AdEditPage";
+import { ErrorState } from "../components/ErrorState/ErrorState";
 
 const router = createBrowserRouter([
   {
@@ -29,9 +30,7 @@ const router = createBrowserRouter([
       },
       {
         path: "*",
-        element: (
-          <div style={{ padding: "20px" }}>404: Страница не найдена</div>
-        ),
+        element: <ErrorState />,
       },
     ],
   },

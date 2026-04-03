@@ -1,34 +1,59 @@
-$text-secondary: #8c8c8c;
-$status-orange: #ff9800;
-$status-bg: #fff3e0;
-$border-color: #e8e8e8;
+// --- ТВОИ ПЕРЕМЕННЫЕ (ТЕПЕРЬ ДИНАМИЧЕСКИЕ) ---
+:root {
+  --card-bg: #ffffff;
+  --card-text-main: #333333;
+  --card-text-price: #000000;
+  --card-text-secondary: #8c8c8c;
+  --card-border: #e8e8e8;
+  --card-img-bg: #f5f5f5;
+  --card-shadow: rgba(0, 0, 0, 0.1);
+  --card-shadow-hover: rgba(0, 0, 0, 0.08);
+
+  // Статусы (оставляем сочными)
+  --status-orange: #ff9800;
+  --status-bg: #fff3e0;
+}
+
+body.dark-theme {
+  --card-bg: #1f1f1f;
+  --card-text-main: #eeeeee;
+  --card-text-price: #ffffff;
+  --card-text-secondary: #a0a0a0;
+  --card-border: #303030;
+  --card-img-bg: #2a2a2a;
+  --card-shadow: rgba(0, 0, 0, 0.3);
+  --card-shadow-hover: rgba(0, 0, 0, 0.4);
+
+  --status-bg: #332b1f; // Темный фон для оранжевого бейджа
+}
 
 .ad-card {
-  background: #ffffff;
+  background: var(--card-bg); // Юзаем переменную
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px var(--card-shadow);
   display: flex;
-  flex-direction: column; // По умолчанию сетка
+  flex-direction: column;
   transition:
     transform 0.2s ease,
-    box-shadow 0.2s ease;
+    box-shadow 0.2s ease,
+    background-color 0.2s ease; // Добавил плавность смены темы
   height: 100%;
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 12px var(--card-shadow-hover);
   }
 
   &__image-container {
     height: 160px;
-    background-color: #f5f5f5;
+    background-color: var(--card-img-bg);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 40px;
     color: #cccccc;
-    flex-shrink: 0; // Важно для режима списка
+    flex-shrink: 0;
   }
 
   &__info {
@@ -47,8 +72,8 @@ $border-color: #e8e8e8;
 
   &__category-tag {
     font-size: 11px;
-    color: $text-secondary;
-    border: 1px solid $border-color;
+    color: var(--card-text-secondary);
+    border: 1px solid var(--card-border);
     border-radius: 4px;
     padding: 2px 8px;
     align-self: flex-start;
@@ -61,7 +86,7 @@ $border-color: #e8e8e8;
     font-weight: 400;
     margin: 0;
     line-height: 1.4;
-    color: #333;
+    color: var(--card-text-main);
   }
 
   &__price-section {
@@ -75,13 +100,13 @@ $border-color: #e8e8e8;
     font-size: 18px;
     font-weight: 700;
     margin: 0;
-    color: #000;
+    color: var(--card-text-price);
   }
 
   &__badge {
     font-size: 12px;
-    color: $status-orange;
-    background: $status-bg;
+    color: var(--status-orange);
+    background: var(--status-bg);
     padding: 4px 10px;
     border-radius: 6px;
     display: inline-flex;
@@ -92,13 +117,12 @@ $border-color: #e8e8e8;
     &-dot {
       width: 6px;
       height: 6px;
-      background-color: $status-orange;
+      background-color: var(--status-orange);
       border-radius: 50%;
     }
   }
 
-  // --- ЛОГИКА ДЛЯ СПИСКА (HORIZONTAL VIEW) ---
-  // Этот селектор сработает, когда у родителя (ads-page__container) есть класс .is-list
+  // --- ТВОЯ ЛОГИКА ДЛЯ СПИСКА ---
   .is-list & {
     flex-direction: row;
     height: 140px;
@@ -122,7 +146,7 @@ $border-color: #e8e8e8;
     }
 
     .ad-card__price-section {
-      flex-direction: row-reverse; // Цена и бейдж в ряд
+      flex-direction: row-reverse;
       align-items: center;
       gap: 20px;
       margin-top: 0;
