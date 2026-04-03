@@ -7,8 +7,9 @@ import {
 } from "../../store/adsApi";
 import "./AdEditPage.scss";
 import { getParamLabel } from "../../utils/paramsMapper";
+import { CATEGORY_FIELDS } from "../../utils/categoryFields";
+import type { Category, AdItem } from "../../types/types";
 
-// Определяем структуру стейта формы для типизации
 interface FormState {
   category: string;
   title: string;
@@ -19,15 +20,20 @@ interface FormState {
 
 export const AdEditPage = () => {
   const MAX_PRICE = 10_000_000_000;
-
-  const [priceError, setPriceError] = useState<string | null>(null);
-
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  // 1. Запросы к API
+  // API Hooks
   const { data, isLoading: isFetching, isError } = useGetAdByIdQuery(id || "");
   const [updateAd, { isLoading: isUpdating }] = useUpdateAdMutation();
+  const [generateAI] = useGenerateAIMutation();
+
+  // Local State
+  const [priceError, setPriceError] = useState<string | null>(null);
+  const [showAiPopup, setShowAiPopup] = useState(false);
+  const [isPriceLoading, setIsPriceLoading] = useState(false);
+  const [isDescLoading, setIsDescLoading] = useState(false);
+  const [aiResult, setAiResult] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<FormState>({
     category: "",
@@ -37,38 +43,72 @@ export const AdEditPage = () => {
     params: {},
   });
 
-  const [showAiPopup, setShowAiPopup] = useState(false);
-  const [isPriceLoading, setIsPriceLoading] = useState(false);
-  const [isDescLoading, setIsDescLoading] = useState(false);
+  // Получаем конфигурацию полей для текущей категории
+  const currentFieldsConfig = CATEGORY_FIELDS[formData.category] || [];
 
-  // 1. Инициализируем мутацию
-  const [generateAI] = useGenerateAIMutation();
+  useEffect(() => {
+    if (data) {
+      setFormData({
+        category: data.category || "",
+        title: data.title || "",
+        price: String(data.price || ""),
+        description: data.description || "",
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        params: (data.params as Record<string, any>) || {},
+      });
+    }
+  }, [data]);
 
-  // Состояние для хранения текста от нейронки в попапе
-  const [aiResult, setAiResult] = useState<string | null>(null);
+  const updateField = (
+    field: keyof Omit<FormState, "params">,
+    value: string,
+  ) => {
+    if (field === "price") {
+      setPriceError(null);
+      if (value.includes("-"))
+        return setPriceError("Цена не может быть отрицательной");
+      if (Number(value) > MAX_PRICE)
+        return setPriceError("Максимальная цена — 10 млрд ₽");
+    }
 
-  // Функция для запроса цены
+    // ЭТО НУЖНО ДОБАВИТЬ:
+    if (field === "category") {
+      setFormData((prev) => ({
+        ...prev,
+        category: value,
+        // Очищаем params полностью или оставляем только те, что были в новой категории (лучше очистить)
+        params: {},
+      }));
+      return;
+    }
+
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const updateParam = (key: string, value: string | number) => {
+    setFormData((prev) => ({
+      ...prev,
+      params: { ...prev.params, [key]: value },
+    }));
+  };
+
   const handleGetPriceAI = async () => {
     try {
-      setAiResult(null); // Сбрасываем старый результат
-      setShowAiPopup(true); // Открываем попап (в нем будет лоадер)
+      setAiResult(null);
+      setShowAiPopup(true);
       setIsPriceLoading(true);
-
       const result = await generateAI({
         action: "price",
         title: formData.title,
       }).unwrap();
-
       setAiResult(result);
     } catch (err) {
-      console.error("AI Error:", err);
-      setAiResult("Ошибка: убедитесь, что Ollama запущена");
+      setAiResult(`Ошибка: убедитесь, что Ollama запущена: ${err}`);
     } finally {
-      setIsPriceLoading(false); // Выключаем
+      setIsPriceLoading(false);
     }
   };
 
-  // Функция для улучшения описания
   const handleImproveDescription = async () => {
     try {
       setIsDescLoading(true);
@@ -76,14 +116,9 @@ export const AdEditPage = () => {
         action: "improve",
         text: formData.description,
       }).unwrap();
-
-      // ПАРСЕР: Ищем блок "Описание:" или "Текст:"
-      // Если нейронка прислала структуру, берем только середину
       const descRegex = /(?:описание|текст):\s*([\s\S]+?)(?=\n\w+:|$)/i;
       const match = result.match(descRegex);
-
       const finalDesc = match ? match[1].trim() : result.trim();
-
       setFormData((prev) => ({ ...prev, description: finalDesc }));
     } catch (err) {
       alert(`Не удалось улучшить описание: ${err}`);
@@ -92,80 +127,43 @@ export const AdEditPage = () => {
     }
   };
 
-  // 2. Синхронизация данных с сервера в стейт формы
-  useEffect(() => {
-    const ad = data;
-    if (ad) {
-      setFormData({
-        category: ad.category || "",
-        title: ad.title || "",
-        price: String(ad.price || ""),
-        description: ad.description || "",
-        params: ad.params || {},
-      });
-    }
-  }, [data]);
-
-  // 3. Обработчики изменений
-  const updateField = (
-    field: keyof Omit<FormState, "params">,
-    value: string,
-  ) => {
-    if (field === "price") {
-      const numericValue = Number(value);
-
-      // Сбрасываем ошибку при каждом вводе
-      setPriceError(null);
-
-      // Защита от отрицательных чисел
-      if (value.includes("-")) {
-        setPriceError("Цена не может быть отрицательной");
-        return;
-      }
-
-      // Защита от лимита
-      if (numericValue > MAX_PRICE) {
-        setPriceError("Максимальная цена — 10 млрд ₽");
-        // Опционально: можно принудительно ставить 10 млрд или оставлять старое
-        return;
-      }
-    }
-
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-  const updateParam = (key: string, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      params: { ...prev.params, [key]: value },
-    }));
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (priceError || !formData.category)
+      return alert("Исправьте ошибки в форме");
 
-    const numericPrice = Number(formData.price);
-    if (isNaN(numericPrice) || numericPrice <= 0) {
-      setPriceError("Введите корректную цену");
-      return;
-    }
+    const numericKeys = currentFieldsConfig
+      .filter((f) => f.type === "number")
+      .map((f) => f.key);
+
+    const preparedParams = Object.entries(formData.params).reduce(
+      (acc, [key, value]) => {
+        // Отправляем пустую строку, чтобы "затереть" данные на сервере
+        if (value === "" || value === null) {
+          acc[key] = "";
+          return acc;
+        }
+        acc[key] = numericKeys.includes(key) ? Number(value) : value;
+        return acc;
+      },
+      {} as Record<string, any>,
+    );
 
     try {
-      const finalData = {
+      const body = {
         title: formData.title,
-        category: formData.category,
-        price: numericPrice,
         description: formData.description,
-        params: formData.params,
-      };
+        category: formData.category as Category,
+        price: Number(formData.price),
+        params: preparedParams,
+      } as Partial<AdItem>;
 
-      await updateAd({ id: id!, body: finalData }).unwrap();
+      await updateAd({ id: id!, body }).unwrap();
       navigate(`/ads/${id}`);
-    } catch (err) {
-      console.error("Save Error:", err);
-      alert("Ошибка сохранения. Проверь консоль (Network tab)");
+    } catch (err: any) {
+      alert(`Ошибка сервера: ${err.data?.error || "Неизвестная ошибка"}`);
     }
   };
-
   if (isFetching)
     return <div className="ad-edit__loading">Загрузка данных...</div>;
   if (isError)
@@ -177,35 +175,31 @@ export const AdEditPage = () => {
 
       <form className="ad-edit__form" onSubmit={handleSubmit}>
         <div className="ad-edit__section">
-          {/* Категория */}
           <div className="input-group">
             <label>Категория</label>
             <select
               value={formData.category}
               onChange={(e) => updateField("category", e.target.value)}
             >
-              <option value="Электроника">Электроника</option>
-              <option value="Авто">Авто</option>
-              <option value="Недвижимость">Недвижимость</option>
+              <option value="">Выберите категорию</option>
+              <option value="electronics">Электроника</option>
+              <option value="auto">Авто</option>
+              <option value="real_estate">Недвижимость</option>
             </select>
           </div>
 
-          {/* Название */}
           <div className="input-group">
             <label>
               <span className="required">*</span> Название
             </label>
-            <div className="input-wrapper">
-              <input
-                type="text"
-                value={formData.title}
-                onChange={(e) => updateField("title", e.target.value)}
-                required
-              />
-            </div>
+            <input
+              type="text"
+              value={formData.title}
+              onChange={(e) => updateField("title", e.target.value)}
+              required
+            />
           </div>
 
-          {/* Цена */}
           <div className="input-group price-group">
             <label>
               <span className="required">*</span> Цена (₽)
@@ -213,16 +207,15 @@ export const AdEditPage = () => {
             <div className="input-wrapper">
               <input
                 type="number"
-                className={priceError ? "input-error" : ""} // Подсветим рамку красным
+                className={priceError ? "input-error" : ""}
                 value={formData.price}
                 onChange={(e) => updateField("price", e.target.value)}
                 required
               />
+              {priceError && (
+                <span className="error-message">{priceError}</span>
+              )}
             </div>
-
-            {/* Та самая подпись для UX */}
-            {priceError && <span className="error-message">{priceError}</span>}
-
             <button
               type="button"
               className={`ai-btn ${isPriceLoading ? "ai-btn--loading" : ""}`}
@@ -235,26 +228,42 @@ export const AdEditPage = () => {
           </div>
         </div>
 
-        {/* Динамические характеристики (Params) */}
-        <div className="ad-edit__section">
-          <h2>Характеристики</h2>
-          {Object.entries(formData.params).map(([key, value]) => (
-            <div className="input-group" key={key}>
-              {/* ТЕПЕРЬ ТУТ БУДЕТ "Мощность двигателя", А НЕ enginePower */}
-              <label>{getParamLabel(key)}</label>
+        {/* Динамические характеристики на основе CATEGORY_FIELDS */}
+        {currentFieldsConfig.length > 0 && (
+          <div className="ad-edit__section">
+            <h2>Характеристики</h2>
+            {currentFieldsConfig.map((field) => (
+              <div className="input-group" key={field.key}>
+                {/* Передаем formData.category вторым аргументом */}
+                <label>{getParamLabel(field.key, formData.category)}</label>
 
-              <div className="input-wrapper">
-                <input
-                  type="text"
-                  value={value ?? ""}
-                  onChange={(e) => updateParam(key, e.target.value)}
-                />
+                <div className="input-wrapper">
+                  {field.type === "select" ? (
+                    <select
+                      value={formData.params[field.key] ?? ""}
+                      onChange={(e) => updateParam(field.key, e.target.value)}
+                    >
+                      <option value="">Не выбрано</option>
+                      {field.options?.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      type={field.type === "number" ? "number" : "text"}
+                      value={formData.params[field.key] ?? ""}
+                      placeholder={getParamLabel(field.key, formData.category)}
+                      onChange={(e) => updateParam(field.key, e.target.value)}
+                    />
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
-        {/* Описание */}
         <div className="ad-edit__section">
           <div className="section-header">
             <h2>Описание</h2>
@@ -262,9 +271,7 @@ export const AdEditPage = () => {
               type="button"
               className="btn-magic"
               onClick={handleImproveDescription}
-              disabled={
-                isDescLoading || isPriceLoading || !formData.description
-              }
+              disabled={isDescLoading || !formData.description}
             >
               {isDescLoading ? "Улучшаю..." : "Улучшить описание нейронкой"}
             </button>
@@ -282,7 +289,6 @@ export const AdEditPage = () => {
           </div>
         </div>
 
-        {/* Кнопки управления */}
         <div className="ad-edit__footer">
           <button type="submit" className="btn-primary" disabled={isUpdating}>
             {isUpdating ? "Сохранение..." : "Сохранить"}
@@ -297,26 +303,21 @@ export const AdEditPage = () => {
         </div>
       </form>
 
-      {/* Рендер попапа AI, если он нужен (логика внутри) */}
+      {/* AI Popup */}
       {showAiPopup && (
         <div
           className="ai-popup-overlay"
-          onClick={() => {
-            // Закрываем только если загрузка цены НЕ идет
-            if (!isPriceLoading) setShowAiPopup(false);
-          }}
+          onClick={() => !isPriceLoading && setShowAiPopup(false)}
         >
           <div className="ai-popup" onClick={(e) => e.stopPropagation()}>
             <button className="close-btn" onClick={() => setShowAiPopup(false)}>
               ×
             </button>
             <h3>Рекомендация AI</h3>
-
-            {/* ИСПОЛЬЗУЕМ ТОЛЬКО isPriceLoading */}
             {isPriceLoading ? (
               <div className="ai-loader">
                 <div className="spinner"></div>
-                <p>Анализирую рынок через Ollama...</p>
+                <p>Анализирую рынок...</p>
               </div>
             ) : (
               <>
@@ -330,11 +331,8 @@ export const AdEditPage = () => {
                   <button
                     className="btn-apply"
                     onClick={() => {
-                      if (!aiResult) return;
-
-                      const match = aiResult.match(/(?:цена):\s*(\d+)/i);
-
-                      if (match && match[1]) {
+                      const match = aiResult?.match(/(?:цена):\s*(\d+)/i);
+                      if (match?.[1]) {
                         updateField("price", match[1]);
                         setShowAiPopup(false);
                       } else {

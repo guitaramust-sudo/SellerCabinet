@@ -1,14 +1,50 @@
+export type Category = "auto" | "real_estate" | "electronics";
+
+// Специфичные параметры для Авто
+export interface AutoParams {
+  brand: string;
+  model: string;
+  yearOfManufacture: number;
+  transmission: "manual" | "automatic";
+  mileage: number;
+}
+
+// Специфичные параметры для Недвижимости
+export interface RealEstateParams {
+  type: "flat" | "house" | "room";
+  address: string;
+  area: number;
+  floor: number;
+}
+
+// Специфичные параметры для Электроники
+export interface ElectronicsParams {
+  type: string;
+  condition: "new" | "used";
+  color?: string;
+}
+
+// Объединяем в Union
+export type AdParams =
+  | ({ category: "auto" } & AutoParams)
+  | ({ category: "real_estate" } & RealEstateParams)
+  | ({ category: "electronics" } & ElectronicsParams);
+
 export interface AdItem {
-  id: string;
-  category: string;
+  id: number | string;
+  category: Category;
   title: string;
   price: number;
-  createdAt: number;
-  description?: string;
+  description: string;
+  createdAt: string;
+  updatedAt?: string;
+  // Теперь params зависят от категории
+  params:
+    | AutoParams
+    | RealEstateParams
+    | ElectronicsParams
+    | Record<string, any>;
   needsRevision?: boolean;
-  // Добавляем params, чтобы TS понимал, что там могут быть любые строки/числа
-  params?: Record<string, string | number | undefined>;
-  imageUrl?: string;
 }
 
 export type SortOption =

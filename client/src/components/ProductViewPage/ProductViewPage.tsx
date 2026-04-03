@@ -2,41 +2,34 @@ import React from "react";
 import { useParams, Link } from "react-router-dom";
 import { useGetAdByIdQuery } from "../../store/adsApi";
 import { getDisplayCategory } from "../../utils/categoryHelper";
-import { getParamLabel } from "../../utils/paramsMapper";
-import placeholderIcon from "../../assets/icons/placeholder.svg";
+import { getParamLabel, getValueLabel } from "../../utils/paramsMapper";
 import "./ProductViewPage.scss";
 
-interface RouteParams extends Record<string, string | undefined> {
-  id: string;
-}
-
 export const ProductViewPage: React.FC = () => {
-  const { id } = useParams<RouteParams>();
-
-  // Фикс типизации: приводим к string, чтобы TS не ругался
-  const { data: ad, isLoading, isError } = useGetAdByIdQuery(String(id || ""));
+  const { id } = useParams<{ id: string }>();
+  const { data: ad, isLoading, isError } = useGetAdByIdQuery(id || "");
 
   if (isLoading) return <div className="product-view__loader">Загрузка...</div>;
   if (isError || !ad)
     return <div className="product-view__error">Не найдено</div>;
 
-  // --- ЛОГИКА ИСПРАВЛЕНИЯ ПЛАШКИ ---
-
-  // 1. Находим реальные пустые поля в параметрах
-  const missingParamKeys = ad.params
-    ? Object.entries(ad.params)
-        .filter(
-          ([_, value]) => value === "" || value === null || value === undefined,
-        )
-        .map(([key]) => key)
-    : [];
-
-  // 2. Проверяем длину описания
-  const isDescriptionTooShort =
+  // --- ЛОГИКА ОШИБОК ---
+  const isDescriptionShort =
     !ad.description || ad.description.trim().length < 5;
+  const paramsEntries = Object.entries(ad.params || {});
 
-  // 3. Итоговый флаг: плашка будет только если реально чего-то не хватает
-  const hasActualErrors = missingParamKeys.length > 0 || isDescriptionTooShort;
+  // Список ключей параметров, которые пустые (null, "", undefined)
+  const emptyParamKeys = paramsEntries
+
+    .filter(
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      ([_, value]) => value === "" || value === null || value === undefined,
+    )
+    .map(([key]) => key);
+
+  const hasNoParams = paramsEntries.length === 0;
+  const hasErrors =
+    isDescriptionShort || hasNoParams || emptyParamKeys.length > 0;
 
   const formatPrice = (price: number) =>
     new Intl.NumberFormat("ru-RU").format(price);
@@ -62,30 +55,22 @@ export const ProductViewPage: React.FC = () => {
       </header>
 
       <div className="product-view__main">
-        <div className="product-view__gallery">
-          <div className="product-view__placeholder">
-            <img
-              src={placeholderIcon}
-              alt="Product"
-              className="product-view__icon"
-            />
-          </div>
-        </div>
-
         <div className="product-view__info">
-          {/* ТЕПЕРЬ ПЛАШКА ВЫВОДИТСЯ ТОЛЬКО ПО ФАКТУ ОШИБОК */}
-          {hasActualErrors && (
+          {/* БЛОК ОШИБОК */}
+          {hasErrors && (
             <div className="product-view__alert">
               <div className="product-view__alert-icon">!</div>
               <div className="product-view__alert-content">
                 <strong>Требуются доработки</strong>
-                <p>Необходимо заполнить:</p>
                 <ul>
-                  {isDescriptionTooShort && (
-                    <li>Описание (минимум 5 символов)</li>
+                  {isDescriptionShort && (
+                    <li>Добавьте описание (минимум 5 символов)</li>
                   )}
-                  {missingParamKeys.map((key) => (
-                    <li key={key}>{getParamLabel(key)}</li>
+                  {hasNoParams && <li>Заполните характеристики товара</li>}
+                  {emptyParamKeys.map((key) => (
+                    <li key={key}>
+                      Поле «{getParamLabel(key, ad.category)}» не заполнено
+                    </li>
                   ))}
                 </ul>
               </div>
@@ -102,22 +87,22 @@ export const ProductViewPage: React.FC = () => {
                 </span>
               </div>
 
-              {ad.params &&
-                Object.entries(ad.params).map(([key, value]) => {
-                  // Если поле пустое, в списке характеристик его не показываем
-                  if (value === "" || value === null || value === undefined)
-                    return null;
-                  return (
+              {/* Рендерим только заполненные параметры */}
+              {paramsEntries.map(
+                ([key, value]) =>
+                  value && (
                     <div className="product-view__char-item" key={key}>
-                      <span className="char-key">{getParamLabel(key)}</span>
+                      <span className="char-key">
+                        {getParamLabel(key, ad.category)}
+                      </span>
                       <span className="char-value">
-                        {key === "enginePower"
+                        {key === "enginePower" || key === "engunepower"
                           ? `${value} л.с.`
-                          : String(value)}
+                          : getValueLabel(value)}
                       </span>
                     </div>
-                  );
-                })}
+                  ),
+              )}
             </div>
           </div>
         </div>
@@ -125,7 +110,7 @@ export const ProductViewPage: React.FC = () => {
 
       <div className="product-view__description">
         <h2>Описание</h2>
-        <p className={!ad.description ? "is-empty" : ""}>
+        <p className={isDescriptionShort ? "is-empty" : ""}>
           {ad.description || "Описание отсутствует"}
         </p>
       </div>
