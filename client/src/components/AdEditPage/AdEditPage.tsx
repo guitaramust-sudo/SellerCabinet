@@ -94,7 +94,7 @@ export const AdEditPage = () => {
 
   // 2. Синхронизация данных с сервера в стейт формы
   useEffect(() => {
-    const ad = data?.items?.[0];
+    const ad = data;
     if (ad) {
       setFormData({
         category: ad.category || "",
@@ -142,20 +142,27 @@ export const AdEditPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!id) return;
+
+    const numericPrice = Number(formData.price);
+    if (isNaN(numericPrice) || numericPrice <= 0) {
+      setPriceError("Введите корректную цену");
+      return;
+    }
 
     try {
-      await updateAd({
-        id,
-        body: {
-          ...formData,
-          price: Number(formData.price), // Конвертируем обратно в число для сервера
-        },
-      }).unwrap();
+      const finalData = {
+        title: formData.title,
+        category: formData.category,
+        price: numericPrice,
+        description: formData.description,
+        params: formData.params,
+      };
+
+      await updateAd({ id: id!, body: finalData }).unwrap();
       navigate(`/ads/${id}`);
     } catch (err) {
-      console.error("Ошибка при обновлении:", err);
-      alert("Не удалось сохранить изменения");
+      console.error("Save Error:", err);
+      alert("Ошибка сохранения. Проверь консоль (Network tab)");
     }
   };
 

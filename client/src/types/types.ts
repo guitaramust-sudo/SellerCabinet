@@ -11,7 +11,12 @@ export interface AdItem {
   imageUrl?: string;
 }
 
-export type SortOption = "newest" | "price-asc" | "price-desc";
+export type SortOption =
+  | "newest"
+  | "price-asc"
+  | "price-desc"
+  | "title-asc"
+  | "title-desc";
 
 export interface FiltersState {
   categories: string[];

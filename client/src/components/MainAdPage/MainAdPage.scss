@@ -112,3 +112,20 @@ $bg-color: #f6f6f6;
     color: #8c8c8c;
   }
 }
+
+.ads-page__pagination {
+  margin-top: 40px;
+  display: flex;
+  justify-content: center;
+  padding-bottom: 20px;
+}
+
+// Если хочешь, чтобы во время запроса (isFetching)
+// контент становился полупрозрачным:
+.ads-page--loading {
+  .ads-page__container {
+    opacity: 0.5;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+}

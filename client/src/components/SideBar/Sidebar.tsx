@@ -1,4 +1,5 @@
 import React from "react";
+import { getServiceCategory } from "../../utils/categoryHelper"; // Твоя утилита
 import type { FiltersState } from "../../types/types";
 import "./Sidebar.scss";
 
@@ -7,13 +8,19 @@ interface SidebarProps {
   onChange: (filters: FiltersState) => void;
 }
 
-const CATEGORIES = ["Авто", "Электроника", "Недвижимость"];
+// Отображаемые названия.
+// Важно: "Транспорт", так как в маппере у тебя 'auto' сопоставлен с 'Транспорт'
+const DISPLAY_CATEGORIES = ["Транспорт", "Электроника", "Недвижимость"];
 
 export const Sidebar: React.FC<SidebarProps> = ({ filters, onChange }) => {
-  const toggleCategory = (cat: string) => {
-    const newCats = filters.categories.includes(cat)
-      ? filters.categories.filter((c) => c !== cat)
-      : [...filters.categories, cat];
+  const toggleCategory = (label: string) => {
+    // Превращаем "Транспорт" -> "auto"
+    const catKey = getServiceCategory(label);
+
+    const newCats = filters.categories.includes(catKey)
+      ? filters.categories.filter((c) => c !== catKey)
+      : [...filters.categories, catKey];
+
     onChange({ ...filters, categories: newCats });
   };
 
@@ -22,6 +29,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ filters, onChange }) => {
       categories: [],
       onlyRequiresRevision: false,
       searchQuery: "",
+      sortBy: "newest", // Добавляем, чтобы соответствовать типу FiltersState
     });
   };
 
@@ -33,16 +41,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ filters, onChange }) => {
           <span className="sidebar__arrow">⌄</span>
         </div>
         <div className="sidebar__options">
-          {CATEGORIES.map((cat) => (
-            <label key={cat} className="sidebar__checkbox-label">
-              <input
-                type="checkbox"
-                checked={filters.categories.includes(cat)}
-                onChange={() => toggleCategory(cat)}
-              />
-              {cat}
-            </label>
-          ))}
+          {DISPLAY_CATEGORIES.map((label) => {
+            const catKey = getServiceCategory(label); // Получаем технический ключ
+            return (
+              <label key={catKey} className="sidebar__checkbox-label">
+                <input
+                  type="checkbox"
+                  // Проверяем наличие технического ключа в стейте
+                  checked={filters.categories.includes(catKey)}
+                  onChange={() => toggleCategory(label)}
+                />
+                {label}
+              </label>
+            );
+          })}
         </div>
       </div>
 
@@ -55,6 +67,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ filters, onChange }) => {
           доработок
         </span>
         <button
+          type="button" // Добавляем тип, чтобы случайно не засабмитить форму
           className={`sidebar__switch ${filters.onlyRequiresRevision ? "is-active" : ""}`}
           onClick={() =>
             onChange({
