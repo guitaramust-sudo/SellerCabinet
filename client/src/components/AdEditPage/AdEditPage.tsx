@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ConfigProvider, theme, Spin } from "antd"; // Добавили тему
+import { ConfigProvider, theme, Spin, Alert } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import {
   useGetAdByIdQuery,
@@ -13,7 +14,7 @@ import { CATEGORY_FIELDS } from "../../utils/categoryFields";
 import type { Category, AdItem } from "../../types/types";
 import { Loader } from "../Loader/Loader";
 import { ErrorState } from "../ErrorState/ErrorState";
-import { useTheme } from "../../hooks/useTheme"; // Твой хук темы
+import { useTheme } from "../../hooks/useTheme";
 import "./AdEditPage.scss";
 
 interface FormState {
@@ -25,7 +26,7 @@ interface FormState {
 }
 
 export const AdEditPage = () => {
-  const { isDarkMode } = useTheme(); // Получаем состояние темы
+  const { isDarkMode } = useTheme();
   const MAX_PRICE = 100000000;
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -37,10 +38,12 @@ export const AdEditPage = () => {
 
   // Local State
   const [priceError, setPriceError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null); // Для общих ошибок
   const [showAiPopup, setShowAiPopup] = useState(false);
   const [isPriceLoading, setIsPriceLoading] = useState(false);
   const [isDescLoading, setIsDescLoading] = useState(false);
   const [aiResult, setAiResult] = useState<string | null>(null);
+  const [aiError, setAiError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<FormState>({
     category: "",
@@ -68,20 +71,17 @@ export const AdEditPage = () => {
     field: keyof Omit<FormState, "params">,
     value: string,
   ) => {
+    setFormError(null); // Сбрасываем ошибку при вводе
     if (field === "price") {
       setPriceError(null);
       if (value.includes("-"))
-        return setPriceError("Цена не может быть отрицательной");
+        setPriceError("Цена не может быть отрицательной");
       if (Number(value) > MAX_PRICE)
-        return setPriceError("Максимальная цена — 10 млрд ₽");
+        setPriceError("Максимальная цена — 100 млн ₽");
     }
 
     if (field === "category") {
-      setFormData((prev) => ({
-        ...prev,
-        category: value,
-        params: {},
-      }));
+      setFormData((prev) => ({ ...prev, category: value, params: {} }));
       return;
     }
 
@@ -97,6 +97,7 @@ export const AdEditPage = () => {
 
   const handleGetPriceAI = async () => {
     try {
+      setAiError(null);
       setAiResult(null);
       setShowAiPopup(true);
       setIsPriceLoading(true);
@@ -106,7 +107,9 @@ export const AdEditPage = () => {
       }).unwrap();
       setAiResult(result);
     } catch (err) {
-      setAiResult(`Ошибка: убедитесь, что Ollama запущена: ${err}`);
+      setAiError(
+        "Ошибка: убедитесь, что Ollama запущена. Не удалось получить цену.",
+      );
     } finally {
       setIsPriceLoading(false);
     }
@@ -114,6 +117,7 @@ export const AdEditPage = () => {
 
   const handleImproveDescription = async () => {
     try {
+      setFormError(null);
       setIsDescLoading(true);
       const result = await generateAI({
         action: "improve",
@@ -124,7 +128,7 @@ export const AdEditPage = () => {
       const finalDesc = match ? match[1].trim() : result.trim();
       setFormData((prev) => ({ ...prev, description: finalDesc }));
     } catch (err) {
-      alert(`Не удалось улучшить описание: ${err}`);
+      setFormError("Не удалось улучшить описание через AI. Попробуйте позже.");
     } finally {
       setIsDescLoading(false);
     }
@@ -132,8 +136,10 @@ export const AdEditPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (priceError || !formData.category)
-      return alert("Исправьте ошибки в форме");
+    setFormError(null);
+
+    if (priceError) return setFormError("Проверьте правильность цены");
+    if (!formData.category) return setFormError("Необходимо выбрать категорию");
 
     const numericKeys = currentFieldsConfig
       .filter((f) => f.type === "number")
@@ -141,7 +147,7 @@ export const AdEditPage = () => {
 
     const preparedParams = Object.entries(formData.params).reduce(
       (acc, [key, value]) => {
-        if (value === "" || value === null) {
+        if (value === "" || value === null || value === undefined) {
           acc[key] = "";
           return acc;
         }
@@ -163,7 +169,10 @@ export const AdEditPage = () => {
       await updateAd({ id: id!, body }).unwrap();
       navigate(`/ads/${id}`);
     } catch (err: any) {
-      alert(`Ошибка сервера: ${err.data?.error || "Неизвестная ошибка"}`);
+      setFormError(
+        err.data?.error ||
+          "Ошибка сохранения. Проверьте соединение с сервером.",
+      );
     }
   };
 
@@ -178,6 +187,18 @@ export const AdEditPage = () => {
     >
       <div className={`ad-edit ${isUpdating ? "ad-edit--updating" : ""}`}>
         <h1>Редактирование объявления</h1>
+
+        {formError && (
+          <div className="ad-edit__error-block">
+            <Alert
+              message={formError}
+              type="error"
+              showIcon
+              closable
+              onClose={() => setFormError(null)}
+            />
+          </div>
+        )}
 
         <form className="ad-edit__form" onSubmit={handleSubmit}>
           <div className="ad-edit__section">
@@ -226,7 +247,7 @@ export const AdEditPage = () => {
                 type="button"
                 className={`ai-btn ${isPriceLoading ? "ai-btn--loading" : ""}`}
                 onClick={handleGetPriceAI}
-                disabled={isPriceLoading || isDescLoading}
+                disabled={isPriceLoading || isDescLoading || !formData.title}
               >
                 {isPriceLoading ? "Думаю..." : "Узнать рыночную цену"}
               </button>
@@ -256,10 +277,6 @@ export const AdEditPage = () => {
                       <input
                         type={field.type === "number" ? "number" : "text"}
                         value={formData.params[field.key] ?? ""}
-                        placeholder={getParamLabel(
-                          field.key,
-                          formData.category,
-                        )}
                         onChange={(e) => updateParam(field.key, e.target.value)}
                       />
                     )}
@@ -295,7 +312,11 @@ export const AdEditPage = () => {
           </div>
 
           <div className="ad-edit__footer">
-            <button type="submit" className="btn-primary" disabled={isUpdating}>
+            <button
+              type="submit"
+              className="btn-primary"
+              disabled={isUpdating || !!priceError}
+            >
               {isUpdating ? "Сохранение..." : "Сохранить"}
             </button>
             <button
@@ -314,7 +335,7 @@ export const AdEditPage = () => {
               className="ai-popup-overlay"
               onClick={() => !isPriceLoading && setShowAiPopup(false)}
             />
-            <div className="ai-popup" onClick={(e) => e.stopPropagation()}>
+            <div className="ai-popup">
               <button
                 type="button"
                 className="close-btn"
@@ -323,7 +344,8 @@ export const AdEditPage = () => {
                 ×
               </button>
               <h3>Рекомендация AI</h3>
-              {isPriceLoading ? (
+
+              {isPriceLoading && (
                 <div className="ai-loader">
                   <Spin
                     indicator={
@@ -332,7 +354,17 @@ export const AdEditPage = () => {
                   />
                   <p style={{ marginTop: 16 }}>Анализирую рынок...</p>
                 </div>
-              ) : (
+              )}
+
+              {aiError && (
+                <Alert
+                  message={aiError}
+                  type="error"
+                  style={{ marginBottom: 16 }}
+                />
+              )}
+
+              {aiResult && !isPriceLoading && (
                 <>
                   <div className="ai-result-text">{aiResult}</div>
                   <div className="ai-popup-actions">
@@ -345,7 +377,7 @@ export const AdEditPage = () => {
                           updateField("price", match[1]);
                           setShowAiPopup(false);
                         } else {
-                          alert("Цена не найдена в ответе");
+                          setAiError("Цена не найдена в ответе нейросети.");
                         }
                       }}
                     >

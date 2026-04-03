@@ -103,6 +103,13 @@ body.dark-theme {
     gap: 28px;
   }
 
+  &__error-block {
+    margin-bottom: 24px;
+    position: sticky;
+    top: 20px;
+    z-index: 10;
+  }
+
   &__section {
     display: flex;
     flex-direction: column;
