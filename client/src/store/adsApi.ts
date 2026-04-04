@@ -15,7 +15,7 @@ export interface AIRequest {
 export const adsApi = createApi({
   reducerPath: "adsApi",
   baseQuery: fetchBaseQuery({ baseUrl: "http://localhost:8080/" }),
-  tagTypes: ["Ads"], // Тег для синхронизации данных
+  tagTypes: ["Ads"],
   endpoints: (builder) => ({
     // 1. Получение списка объявлений
     getAds: builder.query<ItemsResponse, FiltersState & { page: number }>({
@@ -37,7 +37,6 @@ export const adsApi = createApi({
           url: "items",
           params: {
             q: filters.searchQuery || undefined,
-            // Если сервер ждет массив в формате string, оставляем join
             categories: filters.categories?.length
               ? filters.categories.join(",")
               : undefined,
@@ -74,7 +73,7 @@ export const adsApi = createApi({
     >({
       query: ({ id, body }) => ({
         url: `items/${id}`,
-        method: "PATCH", // PATCH надежнее для Partial данных
+        method: "PATCH",
         body,
       }),
       // Инвалидируем конкретный ID и список LIST, чтобы всё перерисовывалось

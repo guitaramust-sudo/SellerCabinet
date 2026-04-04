@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Pagination, ConfigProvider, theme, Button } from "antd"; // Добавили ConfigProvider и theme
+import { Pagination, ConfigProvider, theme, Button } from "antd";
 import { Sidebar } from "../SideBar/Sidebar";
 import { AdCard } from "../AdCard/AdCard";
 import { useGetAdsQuery } from "../../store/adsApi";
@@ -10,7 +10,7 @@ import { ErrorState } from "../ErrorState/ErrorState";
 import { useTheme } from "../../hooks/useTheme";
 
 export const MainAdPage = () => {
-  const { isDarkMode, toggleTheme } = useTheme(); // Достаем стейт и переключалку
+  const { isDarkMode, toggleTheme } = useTheme();
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -33,6 +33,8 @@ export const MainAdPage = () => {
     page: currentPage,
   });
 
+  if (isLoading) return <Loader />;
+
   if (isError) return <ErrorState />;
 
   const ads = data?.items || [];
@@ -41,7 +43,6 @@ export const MainAdPage = () => {
   return (
     <ConfigProvider
       theme={{
-        // Устанавливаем алгоритм в зависимости от темы
         algorithm: isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm,
         token: {
           colorPrimary: "#6e8efb",
@@ -118,9 +119,7 @@ export const MainAdPage = () => {
           <Sidebar filters={filters} onChange={handleFilterChange} />
 
           <main className="ads-page__content">
-            {isLoading ? (
-              <Loader />
-            ) : ads.length > 0 ? (
+            {ads.length > 0 ? (
               <>
                 <div
                   className={`ads-page__container ${viewMode === "list" ? "is-list" : "is-grid"}`}

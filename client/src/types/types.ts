@@ -1,6 +1,5 @@
 export type Category = "auto" | "real_estate" | "electronics";
 
-// Специфичные параметры для Авто
 export interface AutoParams {
   brand: string;
   model: string;
@@ -9,7 +8,6 @@ export interface AutoParams {
   mileage: number;
 }
 
-// Специфичные параметры для Недвижимости
 export interface RealEstateParams {
   type: "flat" | "house" | "room";
   address: string;
@@ -17,14 +15,12 @@ export interface RealEstateParams {
   floor: number;
 }
 
-// Специфичные параметры для Электроники
 export interface ElectronicsParams {
   type: string;
   condition: "new" | "used";
   color?: string;
 }
 
-// Объединяем в Union
 export type AdParams =
   | ({ category: "auto" } & AutoParams)
   | ({ category: "real_estate" } & RealEstateParams)
@@ -38,7 +34,6 @@ export interface AdItem {
   description: string;
   createdAt: string;
   updatedAt?: string;
-  // Теперь params зависят от категории
   params:
     | AutoParams
     | RealEstateParams

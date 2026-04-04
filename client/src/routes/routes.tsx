@@ -16,7 +16,6 @@ const router = createBrowserRouter([
         element: <MainAdPage />,
       },
       {
-        // Просмотр объявления
         path: "ads/:id",
         element: <ProductViewPage />,
       },

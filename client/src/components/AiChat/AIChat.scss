@@ -1,0 +1,134 @@
+@import "../../helpers/helpers";
+
+.ai-chat-card {
+  height: rem(500) !important;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--card-bg);
+  border-radius: rem(12);
+  border: 1px solid var(--card-border);
+  box-shadow: 0 rem(4) rem(12) var(--shadow);
+  overflow: hidden;
+
+  .ant-card-body {
+    padding: 0 !important;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .ai-chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: rem(16);
+    display: flex;
+    flex-direction: column;
+    gap: rem(16);
+
+    &::-webkit-scrollbar {
+      width: rem(4);
+    }
+    &::-webkit-scrollbar-thumb {
+      background: var(--sidebar-divider);
+      border-radius: rem(10);
+    }
+  }
+
+  .chat-msg {
+    display: flex;
+    gap: rem(12);
+    max-width: 85%;
+    align-items: flex-end;
+
+    &.assistant {
+      align-self: flex-start;
+      flex-direction: row;
+
+      .msg-bubble {
+        background-color: var(--ai-bg);
+        color: var(--text-main);
+        border-radius: rem(12) rem(12) rem(12) rem(2);
+      }
+      .msg-avatar {
+        color: var(--ai-gold);
+        background: rgba(212, 136, 6, 0.1);
+      }
+    }
+
+    &.user {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+
+      .msg-bubble {
+        background-color: var(--primary-blue);
+        color: #fff;
+        border-radius: rem(12) rem(12) rem(2) rem(12);
+      }
+      .msg-avatar {
+        background-color: var(--primary-blue);
+      }
+    }
+
+    .msg-avatar {
+      flex-shrink: 0;
+      width: rem(32);
+      height: rem(32);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .msg-bubble {
+      padding: rem(10) rem(14);
+      font-size: rem(14);
+      line-height: 1.5;
+      word-wrap: break-word;
+      box-shadow: 0 rem(2) rem(6) rgba(0, 0, 0, 0.05);
+    }
+  }
+
+  .ai-chat-input-wrapper {
+    flex-shrink: 0;
+    padding: rem(12) rem(16);
+    display: flex;
+    gap: rem(12);
+    background-color: var(--card-bg);
+    border-top: 1px solid var(--card-border);
+    align-items: flex-end;
+
+    textarea,
+    .ant-input {
+      @include input-base;
+      resize: none;
+      min-height: rem(40) !important;
+    }
+
+    button,
+    .ant-btn-primary {
+      @include btn-base(var(--ai-gradient), #ffffff);
+      width: rem(40);
+      height: rem(40);
+      padding: 0;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+
+      &:disabled {
+        background: var(--text-secondary);
+        opacity: 0.5;
+      }
+    }
+  }
+}
+
+@include mobile {
+  .ai-chat-card {
+    height: rem(400) !important;
+  }
+  .chat-msg {
+    max-width: 95%;
+  }
+}

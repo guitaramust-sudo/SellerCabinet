@@ -1,38 +1,4 @@
-// --- ПЕРЕМЕННЫЕ (С ПОДДЕРЖКОЙ ТЕМНОЙ ТЕМЫ) ---
-:root {
-  --view-bg: #ffffff;
-  --view-text-main: #1a1a1a;
-  --view-text-gray: #8c8c8c;
-  --view-border: #e2e2e2;
-  --view-accent: #ffcc00;
-  --view-price: #1a1a1a;
-  --view-alert-bg: #fdf5e8;
-  --view-alert-text: #444444;
-  --view-img-bg: #f5f5f5;
-  --view-char-bg: #ffffff;
-
-  --primary-blue: #2196f3;
-  --primary-blue-hover: #1976d2;
-  --accent-orange: #ff9800;
-}
-
-body.dark-theme {
-  --view-bg: #141414;
-  --view-text-main: #eeeeee;
-  --view-text-gray: #a0a0a0;
-  --view-border: #303030;
-  --view-accent: #d4a017;
-  --view-price: #ffffff;
-  --view-alert-bg: #2b261a;
-  --view-alert-text: #d4d4d4;
-  --view-img-bg: #1f1f1f;
-  --view-char-bg: #141414;
-}
-
-$base-size: 16;
-@function rem($px) {
-  @return ($px / $base-size) * 1rem;
-}
+@import "../../helpers/helpers";
 
 .product-view {
   max-width: rem(1000);
@@ -76,7 +42,7 @@ $base-size: 16;
       color: var(--view-text-main);
     }
 
-    @media (max-width: 480px) {
+    @media (max-width: 600px) {
       flex-direction: column;
       align-items: flex-start;
       gap: rem(8);
@@ -174,7 +140,6 @@ $base-size: 16;
     gap: rem(32);
   }
 
-  // --- БЛОК ОШИБОК ---
   &__alert {
     background: var(--view-alert-bg);
     border-radius: rem(8);
@@ -236,7 +201,6 @@ $base-size: 16;
     }
   }
 
-  // --- ХАРАКТЕРИСТИКИ ---
   &__char-list {
     display: flex;
     flex-direction: column;

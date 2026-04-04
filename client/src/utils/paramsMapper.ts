@@ -24,45 +24,34 @@ export const getParamLabel = (key: string, category?: string): string => {
 
   if (!label) return key;
 
-  // Если нашли объект (сложный лейбл)
   if (typeof label === "object") {
-    // 1. Пытаемся взять по категории
-    // 2. Если категории нет или в объекте нет такого ключа — берем 'electronics' как дефолт
-    // 3. Если и там пусто — возвращаем сам ключ 'type'
     const contextLabel = category ? label[category] : label["electronics"];
     return contextLabel || key;
   }
 
-  // Если это обычная строка
   return label;
 };
 
-// Словарь для ПЕРЕВОДА ЗНАЧЕНИЙ
 const VALUE_LABELS: Record<string, string> = {
-  // --- Электроника ---
   phone: "Смартфон",
   laptop: "Ноутбук",
   tablet: "Планшет",
   camera: "Фотоаппарат",
   console: "Игровая приставка",
 
-  // --- Типы недвижимости ---
   flat: "Квартира",
   house: "Дом",
   cottage: "Коттедж",
   room: "Комната",
 
-  // --- Состояние ---
   new: "Новое",
   used: "Б/У",
 
-  // --- Коробка передач ---
   manual: "Механика",
   automatic: "Автомат",
   robot: "Робот",
   variator: "Вариатор",
 
-  // --- Типы кузова ---
   sedan: "Седан",
   hatchback: "Хэтчбек",
   suv: "Внедорожник",

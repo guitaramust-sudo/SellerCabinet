@@ -1,28 +1,52 @@
+@import "../../helpers/helpers";
+
 .error-container {
   display: flex;
   justify-content: center;
   align-items: center;
   width: 100%;
-  min-height: 400px;
-  padding: 40px;
+  min-height: rem(400);
+  padding: rem(40);
+  background-color: var(--error-bg);
+  transition: background-color 0.2s ease;
 
-  .ant-result-title {
-    font-weight: 700;
-    color: #333;
+  @include mobile {
+    padding: rem(20);
+    min-height: rem(300);
   }
 
-  .ant-result-subtitle {
-    color: #666;
-    font-size: 16px;
+  :global {
+    .ant-result-title {
+      font-weight: 700;
+      color: var(--error-text-main) !important;
+      font-size: rem(24) !important;
+      line-height: 1.4;
+    }
+
+    .ant-result-subtitle {
+      color: var(--error-text-secondary) !important;
+      font-size: rem(16) !important;
+      margin-bottom: rem(24);
+    }
+
+    .ant-result-icon {
+      margin-bottom: rem(16);
+    }
   }
 
   .btn-retry {
-    background: #ff4d4f;
-    border-color: #ff4d4f;
+    @include btn-base(var(--error-red), #ffffff);
+    height: auto;
+    line-height: 1.5;
 
     &:hover {
-      background: #ff7875 !important;
-      border-color: #ff7875 !important;
+      background-color: var(--error-red-hover) !important;
+      border-color: var(--error-red-hover) !important;
+      color: #ffffff !important;
+    }
+
+    &:focus {
+      box-shadow: 0 0 0 rem(3) rgba(255, 77, 79, 0.2);
     }
   }
 }

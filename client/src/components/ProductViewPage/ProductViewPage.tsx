@@ -1,19 +1,18 @@
 import React from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
-import { ConfigProvider, theme } from "antd"; // Добавили AntD тему
+import { useParams, Link } from "react-router-dom";
+import { ConfigProvider, theme } from "antd";
 import { useGetAdByIdQuery } from "../../store/adsApi";
 import { getDisplayCategory } from "../../utils/categoryHelper";
-import { getParamLabel } from "../../utils/paramsMapper";
+import { getParamLabel, getValueLabel } from "../../utils/paramsMapper";
 import placeholderIcon from "../../assets/icons/placeholder.svg";
 import { Loader } from "../Loader/Loader";
 import { ErrorState } from "../ErrorState/ErrorState";
-import { useTheme } from "../../hooks/useTheme"; // Хук темы
-import { getValueLabel } from "../../utils/paramsMapper";
+import { useTheme } from "../../hooks/useTheme";
+import type { Category } from "../../types/types";
 import "./ProductViewPage.scss";
 
 export const ProductViewPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const { isDarkMode } = useTheme();
   const { data: ad, isLoading, isError } = useGetAdByIdQuery(id || "");
 
@@ -22,18 +21,34 @@ export const ProductViewPage: React.FC = () => {
 
   const isDescriptionShort =
     !ad.description || ad.description.trim().length < 5;
-  const paramsEntries = Object.entries(ad.params || {});
 
-  const emptyParamKeys = paramsEntries
-    .filter(
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      ([_, value]) => value === "" || value === null || value === undefined,
-    )
-    .map(([key]) => key);
+  const getMissingFields = () => {
+    // Кастуем к Record<string, any>, чтобы TS не выносил мозг при обращении params[key]
+    const params = (ad.params || {}) as Record<string, never>;
+    const missing: string[] = [];
 
-  const hasNoParams = paramsEntries.length === 0;
+    const checks: Record<Category, string[]> = {
+      auto: ["brand", "model", "yearOfManufacture", "transmission", "mileage"],
+      real_estate: ["type", "address", "area", "floor"],
+      electronics: ["type", "condition"],
+    };
+
+    const fieldsToHistory = checks[ad.category as Category] || [];
+
+    fieldsToHistory.forEach((key) => {
+      const value = params[key];
+      if (value === undefined || value === "" || value === null) {
+        missing.push(key);
+      }
+    });
+
+    return missing;
+  };
+
+  const missingFields = getMissingFields();
+  const hasNoParams = !ad.params || Object.keys(ad.params).length === 0;
   const hasErrors =
-    isDescriptionShort || hasNoParams || emptyParamKeys.length > 0;
+    isDescriptionShort || hasNoParams || missingFields.length > 0;
 
   const formatPrice = (price: number) =>
     new Intl.NumberFormat("ru-RU").format(price);
@@ -45,9 +60,9 @@ export const ProductViewPage: React.FC = () => {
       }}
     >
       <div className="product-view">
-        <button className="product-view__btn-back" onClick={() => navigate(-1)}>
-          ← Назад
-        </button>
+        <Link to="/ads" className="product-view__btn-back">
+          ← К списку объявлений
+        </Link>
 
         <header className="product-view__header">
           <div className="product-view__title-row">
@@ -59,7 +74,7 @@ export const ProductViewPage: React.FC = () => {
 
           <div className="product-view__actions">
             <Link to="edit" className="product-view__btn-edit">
-              Редактировать ✎
+              Редактировать
             </Link>
             <div className="product-view__dates">
               <span>
@@ -91,9 +106,9 @@ export const ProductViewPage: React.FC = () => {
                       <li>Добавьте описание (минимум 5 символов)</li>
                     )}
                     {hasNoParams && <li>Заполните характеристики товара</li>}
-                    {emptyParamKeys.map((key) => (
-                      <li key={key}>
-                        Поле «{getParamLabel(key)}» не заполнено
+                    {missingFields.map((field) => (
+                      <li key={field}>
+                        Поле «{getParamLabel(field, ad.category)}» не заполнено
                       </li>
                     ))}
                   </ul>
@@ -110,23 +125,25 @@ export const ProductViewPage: React.FC = () => {
                     {getDisplayCategory(ad.category)}
                   </span>
                 </div>
-                {paramsEntries.map(([key, value]) => {
-                  // Пропускаем пустые значения
+                {Object.entries(ad.params || {}).map(([key, value]) => {
                   if (value === "" || value === null || value === undefined)
                     return null;
 
-                  // ПЕРЕДАЕМ КАТЕГОРИЮ, чтобы не было "Типа устройства" в квартирах
-                  const label = getParamLabel(key, ad.category);
-
-                  // ИСПОЛЬЗУЕМ ТВОЙ НОВЫЙ ХЕЛПЕР для перевода значений (flat -> Квартира)
-                  const displayValue = getValueLabel(value);
-
                   return (
                     <div className="product-view__char-item" key={key}>
-                      <span className="char-key">{label}</span>
+                      <span className="char-key">
+                        {getParamLabel(key, ad.category)}
+                      </span>
                       <span className="char-value">
-                        {/* Обработка специфических единиц измерения */}
-                        {key === "enginePower" ? `${value} л.с.` : displayValue}
+                        {key === "enginePower"
+                          ? `${value} л.с.`
+                          : key === "area"
+                            ? `${value} м²`
+                            : key === "mileage"
+                              ? `${formatPrice(Number(value))} км`
+                              : key === "yearOfManufacture"
+                                ? `${value} г.`
+                                : getValueLabel(value)}
                       </span>
                     </div>
                   );

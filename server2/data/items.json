@@ -33,18 +33,15 @@
   },
   {
     "id": 3,
-    "category": "electronics",
-    "title": "Новенький айфон 17 Про Макс",
-    "description": "",
-    "price": 200000,
+    "category": "real_estate",
+    "title": "самый дорогой товар на Земле",
+    "description": "ojijloj",
+    "price": 99999998,
     "createdAt": "2026-03-10T00:00:00.000Z",
-    "updatedAt": "2026-03-10T00:00:00.000Z",
+    "updatedAt": "2026-04-04T12:58:51.405Z",
     "params": {
-      "type": "phone",
-      "brand": "Apple",
-      "model": "iPhone 17 Pro Max",
-      "condition": "new",
-      "color": "Чёрный"
+      "type": "flat",
+      "floor": 13
     }
   },
   {
@@ -139,12 +136,14 @@
     "id": 11,
     "category": "electronics",
     "title": "Проигрыватель винила Radiotehnika эп-101",
-    "description": "",
+    "description": "хз так себе",
     "price": 4400,
     "createdAt": "2026-03-05T00:00:00.000Z",
-    "updatedAt": "2026-03-05T00:00:00.000Z",
+    "updatedAt": "2026-04-04T13:33:03.437Z",
     "params": {
-      "type": "misc",
+      "type": "phone",
+      "brand": "бред",
+      "model": "модель",
       "condition": "used",
       "color": "Серый"
     }
@@ -258,12 +257,12 @@
   },
   {
     "id": 20,
-    "category": "electronics",
+    "category": "auto",
     "title": "а",
     "description": "Это уникальный продукт, который предназначен для обеспечения безопасного хранения и транспортировки различных предметов в доме или офисе. Он идеально подходит для тех, кто ценит комфорт и практичность в своей жизни.\n\nПреимущества:\n- Удобство использования\n- Высокое качество материалов\n- Простота монтажа",
-    "price": 25000,
+    "price": 33839833,
     "createdAt": "2026-03-11T00:00:00.000Z",
-    "updatedAt": "2026-04-03T21:28:56.421Z",
+    "updatedAt": "2026-04-04T12:59:48.827Z",
     "params": {}
   },
   {
@@ -309,7 +308,7 @@
     "description": "",
     "price": 500000,
     "createdAt": "2026-03-10T00:00:00.000Z",
-    "updatedAt": "2026-03-10T00:00:00.000Z",
+    "updatedAt": "2026-04-04T12:16:01.026Z",
     "params": {
       "brand": "Lada",
       "model": "Granta"
@@ -412,12 +411,12 @@
   },
   {
     "id": 32,
-    "category": "auto",
+    "category": "electronics",
     "title": "Daewoo Nexia",
     "description": "",
     "price": 185000,
     "createdAt": "2026-03-10T00:00:00.000Z",
-    "updatedAt": "2026-03-10T00:00:00.000Z",
+    "updatedAt": "2026-04-04T12:27:54.646Z",
     "params": {}
   }
 ]

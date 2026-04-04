@@ -2,8 +2,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ConfigProvider, theme, Spin, Alert } from "antd";
-import { LoadingOutlined } from "@ant-design/icons";
+import {
+  ConfigProvider,
+  theme,
+  Spin,
+  Alert,
+  notification,
+  Drawer,
+  Button,
+  Space,
+} from "antd";
+import { LoadingOutlined, RobotOutlined } from "@ant-design/icons";
 import {
   useGetAdByIdQuery,
   useUpdateAdMutation,
@@ -15,6 +24,7 @@ import type { Category, AdItem } from "../../types/types";
 import { Loader } from "../Loader/Loader";
 import { ErrorState } from "../ErrorState/ErrorState";
 import { useTheme } from "../../hooks/useTheme";
+import { AIChat } from "../AiChat/AIChat";
 import "./AdEditPage.scss";
 
 interface FormState {
@@ -27,18 +37,21 @@ interface FormState {
 
 export const AdEditPage = () => {
   const { isDarkMode } = useTheme();
+  const [api, contextHolder] = notification.useNotification();
   const MAX_PRICE = 100000000;
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  // API Hooks
   const { data, isLoading: isFetching, isError } = useGetAdByIdQuery(id || "");
   const [updateAd, { isLoading: isUpdating }] = useUpdateAdMutation();
   const [generateAI] = useGenerateAIMutation();
 
-  // Local State
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>(
+    {},
+  );
   const [priceError, setPriceError] = useState<string | null>(null);
-  const [formError, setFormError] = useState<string | null>(null); // Для общих ошибок
+  const [formError, setFormError] = useState<string | null>(null);
   const [showAiPopup, setShowAiPopup] = useState(false);
   const [isPriceLoading, setIsPriceLoading] = useState(false);
   const [isDescLoading, setIsDescLoading] = useState(false);
@@ -56,7 +69,14 @@ export const AdEditPage = () => {
   const currentFieldsConfig = CATEGORY_FIELDS[formData.category] || [];
 
   useEffect(() => {
-    if (data) {
+    const savedData = localStorage.getItem(`edit_ad_${id}`);
+    if (savedData) {
+      try {
+        setFormData(JSON.parse(savedData));
+      } catch (e) {
+        console.error(e);
+      }
+    } else if (data) {
       setFormData({
         category: data.category || "",
         title: data.title || "",
@@ -65,19 +85,36 @@ export const AdEditPage = () => {
         params: (data.params as Record<string, any>) || {},
       });
     }
-  }, [data]);
+  }, [data, id]);
+
+  useEffect(() => {
+    if (formData.title || formData.price || formData.category) {
+      localStorage.setItem(`edit_ad_${id}`, JSON.stringify(formData));
+    }
+  }, [formData, id]);
+
+  const handleBlur = (field: string) => {
+    setTouchedFields((prev) => ({ ...prev, [field]: true }));
+  };
 
   const updateField = (
     field: keyof Omit<FormState, "params">,
     value: string,
   ) => {
-    setFormError(null); // Сбрасываем ошибку при вводе
+    setFormError(null);
+
     if (field === "price") {
       setPriceError(null);
-      if (value.includes("-"))
+      const numValue = Number(value);
+
+      if (value !== "" && numValue < 0) {
         setPriceError("Цена не может быть отрицательной");
-      if (Number(value) > MAX_PRICE)
+        return;
+      }
+
+      if (numValue > MAX_PRICE) {
         setPriceError("Максимальная цена — 100 млн ₽");
+      }
     }
 
     if (field === "category") {
@@ -107,9 +144,7 @@ export const AdEditPage = () => {
       }).unwrap();
       setAiResult(result);
     } catch (err) {
-      setAiError(
-        "Ошибка: убедитесь, что Ollama запущена. Не удалось получить цену.",
-      );
+      setAiError("Ошибка: убедитесь, что Ollama запущена.");
     } finally {
       setIsPriceLoading(false);
     }
@@ -128,7 +163,7 @@ export const AdEditPage = () => {
       const finalDesc = match ? match[1].trim() : result.trim();
       setFormData((prev) => ({ ...prev, description: finalDesc }));
     } catch (err) {
-      setFormError("Не удалось улучшить описание через AI. Попробуйте позже.");
+      setFormError("Не удалось улучшить описание через AI.");
     } finally {
       setIsDescLoading(false);
     }
@@ -138,8 +173,15 @@ export const AdEditPage = () => {
     e.preventDefault();
     setFormError(null);
 
-    if (priceError) return setFormError("Проверьте правильность цены");
-    if (!formData.category) return setFormError("Необходимо выбрать категорию");
+    if (
+      priceError ||
+      !formData.title ||
+      !formData.price ||
+      Number(formData.price) < 0
+    ) {
+      setTouchedFields({ title: true, price: true });
+      return;
+    }
 
     const numericKeys = currentFieldsConfig
       .filter((f) => f.type === "number")
@@ -167,12 +209,22 @@ export const AdEditPage = () => {
       } as Partial<AdItem>;
 
       await updateAd({ id: id!, body }).unwrap();
-      navigate(`/ads/${id}`);
+      localStorage.removeItem(`edit_ad_${id}`);
+
+      api.success({
+        message: "Изменения сохранены",
+        placement: "topRight",
+        duration: 3,
+      });
+
+      setTimeout(() => navigate(`/ads/${id}`), 1000);
     } catch (err: any) {
-      setFormError(
-        err.data?.error ||
-          "Ошибка сохранения. Проверьте соединение с сервером.",
-      );
+      api.error({
+        message: "Ошибка сохранения",
+        description: "При попытке сохранить изменения произошла ошибка.",
+        placement: "topRight",
+      });
+      setFormError(err.data?.error || "Ошибка сохранения");
     }
   };
 
@@ -185,8 +237,27 @@ export const AdEditPage = () => {
         algorithm: isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm,
       }}
     >
+      {contextHolder}
       <div className={`ad-edit ${isUpdating ? "ad-edit--updating" : ""}`}>
-        <h1>Редактирование объявления</h1>
+        <header
+          className="ad-edit__header"
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "24px",
+          }}
+        >
+          <h1 style={{ margin: 0 }}>Редактирование объявления</h1>
+          <Button
+            type="primary"
+            icon={<RobotOutlined />}
+            onClick={() => setIsChatOpen(true)}
+            style={{ background: "#6e8efb", borderColor: "#6e8efb" }}
+          >
+            Помощник ИИ
+          </Button>
+        </header>
 
         {formError && (
           <div className="ad-edit__error-block">
@@ -221,8 +292,12 @@ export const AdEditPage = () => {
               </label>
               <input
                 type="text"
+                className={
+                  touchedFields.title && !formData.title ? "input-error" : ""
+                }
                 value={formData.title}
                 onChange={(e) => updateField("title", e.target.value)}
+                onBlur={() => handleBlur("title")}
                 required
               />
             </div>
@@ -234,14 +309,22 @@ export const AdEditPage = () => {
               <div className="input-wrapper">
                 <input
                   type="number"
-                  className={priceError ? "input-error" : ""}
+                  min="0"
+                  onKeyDown={(e) => {
+                    if (e.key === "-" || e.key === "e" || e.key === "+") {
+                      e.preventDefault();
+                    }
+                  }}
+                  className={
+                    priceError || (touchedFields.price && !formData.price)
+                      ? "input-error"
+                      : ""
+                  }
                   value={formData.price}
                   onChange={(e) => updateField("price", e.target.value)}
+                  onBlur={() => handleBlur("price")}
                   required
                 />
-                {priceError && (
-                  <span className="error-message">{priceError}</span>
-                )}
               </div>
               <button
                 type="button"
@@ -252,6 +335,13 @@ export const AdEditPage = () => {
                 {isPriceLoading ? "Думаю..." : "Узнать рыночную цену"}
               </button>
             </div>
+            {priceError && (
+              <div
+                style={{ color: "#ff4d4f", fontSize: "12px", marginTop: "4px" }}
+              >
+                {priceError}
+              </div>
+            )}
           </div>
 
           {currentFieldsConfig.length > 0 && (
@@ -276,6 +366,19 @@ export const AdEditPage = () => {
                     ) : (
                       <input
                         type={field.type === "number" ? "number" : "text"}
+                        min={field.type === "number" ? "0" : undefined}
+                        onKeyDown={
+                          field.type === "number"
+                            ? (e) => {
+                                if (
+                                  e.key === "-" ||
+                                  e.key === "e" ||
+                                  e.key === "+"
+                                )
+                                  e.preventDefault();
+                              }
+                            : undefined
+                        }
                         value={formData.params[field.key] ?? ""}
                         onChange={(e) => updateParam(field.key, e.target.value)}
                       />
@@ -295,7 +398,7 @@ export const AdEditPage = () => {
                 onClick={handleImproveDescription}
                 disabled={isDescLoading || !formData.description}
               >
-                {isDescLoading ? "Улучшаю..." : "Улучшить описание нейросетью"}
+                {isDescLoading ? "Улучшаю..." : "Улучшить описание"}
               </button>
             </div>
             <div className="textarea-wrapper">
@@ -305,9 +408,6 @@ export const AdEditPage = () => {
                 maxLength={1000}
                 placeholder="Введите описание товара..."
               />
-              <span className="char-count">
-                {formData.description.length} / 1000
-              </span>
             </div>
           </div>
 
@@ -322,12 +422,32 @@ export const AdEditPage = () => {
             <button
               type="button"
               className="btn-secondary"
-              onClick={() => navigate(-1)}
+              onClick={() => {
+                localStorage.removeItem(`edit_ad_${id}`);
+                navigate(-1);
+              }}
             >
               Отменить
             </button>
           </div>
         </form>
+
+        <Drawer
+          title={
+            <Space>
+              <RobotOutlined style={{ color: "#6e8efb" }} />
+              <span>Помощник по объявлению</span>
+            </Space>
+          }
+          placement="right"
+          onClose={() => setIsChatOpen(false)}
+          open={isChatOpen}
+          width={450}
+          className="ai-chat-drawer"
+          styles={{ body: { padding: 0, overflow: "hidden" } }}
+        >
+          <AIChat ad={{ ...formData, id }} />
+        </Drawer>
 
         {showAiPopup && (
           <>
@@ -344,7 +464,6 @@ export const AdEditPage = () => {
                 ×
               </button>
               <h3>Рекомендация AI</h3>
-
               {isPriceLoading && (
                 <div className="ai-loader">
                   <Spin
@@ -352,10 +471,8 @@ export const AdEditPage = () => {
                       <LoadingOutlined style={{ fontSize: 32 }} spin />
                     }
                   />
-                  <p style={{ marginTop: 16 }}>Анализирую рынок...</p>
                 </div>
               )}
-
               {aiError && (
                 <Alert
                   message={aiError}
@@ -363,7 +480,6 @@ export const AdEditPage = () => {
                   style={{ marginBottom: 16 }}
                 />
               )}
-
               {aiResult && !isPriceLoading && (
                 <>
                   <div className="ai-result-text">{aiResult}</div>
@@ -377,18 +493,11 @@ export const AdEditPage = () => {
                           updateField("price", match[1]);
                           setShowAiPopup(false);
                         } else {
-                          setAiError("Цена не найдена в ответе нейросети.");
+                          setAiError("Цена не найдена в ответе.");
                         }
                       }}
                     >
                       Применить цену
-                    </button>
-                    <button
-                      type="button"
-                      className="btn-cancel"
-                      onClick={() => setShowAiPopup(false)}
-                    >
-                      Закрыть
                     </button>
                   </div>
                 </>

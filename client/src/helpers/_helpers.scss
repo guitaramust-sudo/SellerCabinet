@@ -1,0 +1,222 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+// --- 1. ТИПОГРАФИКА И БАЗОВЫЕ НАСТРОЙКИ ---
+$base-font-size: 16px;
+
+@function rem($px) {
+  @if unitless($px) {
+    $px: $px * 1px;
+  }
+  @return ($px / $base-font-size) * 1rem;
+}
+
+// --- 2. ЦВЕТОВАЯ ПАЛИТРА (ДИЗАЙН-СИСТЕМА) ---
+:root {
+  --primary-blue: #2196f3;
+  --primary-blue-hover: #1976d2;
+  --accent-orange: #ff9800;
+  --ai-gradient: linear-gradient(135deg, #6e8efb, #a777e3);
+  --error-red: #ff4d4f;
+  --error-red-hover: #ff7875;
+
+  --bg-main: #f5f5f5;
+  --text-main: #1a1a1a;
+  --text-secondary: #8c8c8c;
+  --border-color: #e2e2e2;
+
+  --input-bg: #ffffff;
+  --ai-bg: #fff8e6;
+  --ai-gold: #d48806;
+  --status-bg: #fff3e0;
+  --shadow: rgba(0, 0, 0, 0.1);
+
+  --card-bg: #ffffff;
+  --card-text-main: #333333;
+  --card-text-price: #000000;
+  --card-text-secondary: #8c8c8c;
+  --card-border: #e8e8e8;
+  --card-img-bg: #f5f5f5;
+  --card-shadow: rgba(0, 0, 0, 0.1);
+  --card-shadow-hover: rgba(0, 0, 0, 0.08);
+
+  --status-orange: #ff9800;
+  --status-bg: #fff3e0;
+
+  --error-bg: #ffffff;
+  --error-text-main: #333333;
+  --error-text-secondary: #666666;
+  --error-red: #ff4d4f;
+  --error-red-hover: #ff7875;
+
+  --loader-bg: #ffffff;
+  --loader-accent: #6e8efb;
+
+  --view-bg: #ffffff;
+  --view-text-main: #1a1a1a;
+  --view-text-gray: #8c8c8c;
+  --view-border: #e2e2e2;
+  --view-accent: #ffcc00;
+  --view-price: #1a1a1a;
+  --view-alert-bg: #fdf5e8;
+  --view-alert-text: #444444;
+  --view-img-bg: #f5f5f5;
+  --view-char-bg: #ffffff;
+
+  --primary-blue: #2196f3;
+  --primary-blue-hover: #1976d2;
+  --accent-orange: #ff9800;
+
+  --sidebar-bg: #ffffff;
+  --sidebar-text: #1a1a1a;
+  --sidebar-text-gray: #555555;
+  --sidebar-divider: #f0f0f0;
+  --sidebar-input-bg: #f5f5f5;
+  --sidebar-switch-bg: #e2e2e2;
+  --sidebar-switch-handle: #ffffff;
+  --sidebar-accent: #ffcc00;
+  --sidebar-accent-hover: rgba(255, 204, 0, 0.15);
+  --sidebar-switch-active: #000000;
+  --sidebar-border: #e2e2e2;
+
+  --edit-border: #d9d9d9;
+}
+
+body.dark-theme {
+  --card-bg: #1f1f1f;
+  --card-text-main: #eeeeee;
+  --card-text-price: #ffffff;
+  --card-text-secondary: #a0a0a0;
+  --card-border: #303030;
+  --card-img-bg: #2a2a2a;
+  --card-shadow: rgba(0, 0, 0, 0.3);
+  --card-shadow-hover: rgba(0, 0, 0, 0.4);
+
+  --status-bg: #332b1f;
+
+  --error-bg: #141414;
+  --error-text-main: #eeeeee;
+  --error-text-secondary: #aaaaaa;
+
+  --loader-bg: #141414;
+  --bg-main: #141414;
+
+  --ai-bg: #2b261a;
+  --text-main: #ffffff;
+
+  --view-bg: #141414;
+  --view-text-main: #eeeeee;
+  --view-text-gray: #a0a0a0;
+  --view-border: #303030;
+  --view-accent: #d4a017;
+  --view-price: #ffffff;
+  --view-alert-bg: #2b261a;
+  --view-alert-text: #d4d4d4;
+  --view-img-bg: #1f1f1f;
+  --view-char-bg: #141414;
+
+  --sidebar-bg: #141414;
+  --sidebar-text: #eeeeee;
+  --sidebar-text-gray: #aaaaaa;
+  --sidebar-divider: #262626;
+  --sidebar-input-bg: #1f1f1f;
+  --sidebar-switch-bg: #303030;
+  --sidebar-switch-active: #ffcc00; // В темной теме активный свитч лучше сделать желтым
+  --sidebar-border: #303030;
+
+  --input-bg: #1f1f1f;
+
+  --edit-border: #303030;
+}
+
+// --- 3. АДАПТИВНАЯ ВЕРСТКА ---
+$breakpoint-mobile: 768px;
+$breakpoint-small: 480px;
+
+@mixin mobile {
+  @media (max-width: #{$breakpoint-mobile}) {
+    @content;
+  }
+}
+
+@mixin small-mobile {
+  @media (max-width: #{$breakpoint-small}) {
+    @content;
+  }
+}
+
+// --- 4. УНИВЕРСАЛЬНЫЕ МИКСИНЫ ДЛЯ КОМПОНЕНТОВ ---
+
+@mixin btn-base($bg, $color) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: rem(8);
+  padding: rem(10) rem(24);
+  border-radius: rem(8);
+  border: 1px solid transparent;
+  font-size: rem(14);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  background: $bg;
+  color: $color;
+  text-decoration: none;
+  outline: none;
+
+  &:hover:not(:disabled) {
+    filter: brightness(1.1);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+@mixin input-base {
+  width: 100%;
+  padding: rem(10) rem(14);
+  background-color: var(--input-bg);
+  color: var(--text-main);
+  border: 1px solid var(--edit-border);
+  border-radius: rem(8);
+  font-size: rem(14);
+  outline: none;
+  transition: all 0.2s ease;
+
+  &:focus {
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 rem(3) rgba(33, 150, 243, 0.1);
+  }
+}
+
+@mixin page-container {
+  max-width: rem(1200);
+  margin: 0 auto;
+  padding: rem(40) rem(20);
+
+  @include mobile {
+    padding: rem(20) rem(10);
+  }
+}
+
+// --- 5. ГЛОБАЛЬНЫЕ СБРОСЫ ---
+* {
+  box-sizing: border-box;
+  text-decoration: none;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  font-family: "Inter", sans-serif;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+}

@@ -2,13 +2,11 @@ const express = require("express");
 const cors = require("cors");
 
 const app = express();
-// Настройки порта из переменных окружения или 8080 по умолчанию
 const PORT = process.env.PORT || 8080;
 
 app.use(cors());
 app.use(express.json());
 
-// --- Моковая "База данных" ---
 let itemsDB = [
   {
     id: "1",
@@ -29,7 +27,7 @@ let itemsDB = [
     id: "2",
     category: "auto",
     title: "Volkswagen Polo",
-    description: "", // Пустое описание -> needsRevision будет true
+    description: "",
     price: 1100000,
     createdAt: new Date("2023-10-02T12:00:00Z").getTime(),
     params: {
@@ -53,12 +51,10 @@ let itemsDB = [
       address: "ул. Пушкина, д. Колотушкина",
       area: 25,
       floor: "",
-    }, // Пустой этаж -> needsRevision будет true
+    },
   },
 ];
 
-// --- Вспомогательная функция: проверка на доработки ---
-// Объявление требует доработки, если нет description или любое из полей params пустое/отсутствует
 const calculateNeedsRevision = (item) => {
   if (!item.description || item.description.trim() === "") {
     return true;
@@ -76,9 +72,6 @@ const calculateNeedsRevision = (item) => {
   return false;
 };
 
-// --- КОНЕЧНЫЕ ТОЧКИ ---
-
-// 1. GET /items - Получение всех объявлений с фильтрацией
 app.get("/items", (req, res) => {
   const {
     q,
@@ -90,13 +83,11 @@ app.get("/items", (req, res) => {
     sortDirection,
   } = req.query;
 
-  // Клонируем базу и сразу вычисляем needsRevision для каждого элемента
   let result = itemsDB.map((item) => ({
     ...item,
     needsRevision: calculateNeedsRevision(item),
   }));
 
-  // Фильтрация по строке поиска (q)
   if (q) {
     const searchStr = q.toLowerCase();
     result = result.filter((item) =>
@@ -104,18 +95,15 @@ app.get("/items", (req, res) => {
     );
   }
 
-  // Фильтрация по категориям (categories)
   if (categories) {
     const catsArray = categories.split(",").map((c) => c.trim());
     result = result.filter((item) => catsArray.includes(item.category));
   }
 
-  // Фильтрация по needsRevision
   if (needsRevision === "true") {
     result = result.filter((item) => item.needsRevision === true);
   }
 
-  // Сортировка (sortColumn, sortDirection)
   if (sortColumn) {
     const dir = sortDirection === "desc" ? -1 : 1;
     result.sort((a, b) => {
@@ -125,10 +113,8 @@ app.get("/items", (req, res) => {
     });
   }
 
-  // Запоминаем общее количество подходящих записей ДО пагинации
   const total = result.length;
 
-  // Пагинация (skip, limit)
   const skipCount = skip ? parseInt(skip, 10) : 0;
   if (skipCount > 0) {
     result = result.slice(skipCount);
@@ -139,14 +125,12 @@ app.get("/items", (req, res) => {
     result = result.slice(0, limitCount);
   }
 
-  // Возвращаем контракт
   res.json({
     items: result,
     total: total,
   });
 });
 
-// 2. GET /items/:id - Получение конкретного объявления
 app.get("/items/:id", (req, res) => {
   const { id } = req.params;
   const item = itemsDB.find((i) => i.id === id);
@@ -155,7 +139,6 @@ app.get("/items/:id", (req, res) => {
     return res.status(404).json({ error: "Объявление не найдено" });
   }
 
-  // По контракту даже один элемент возвращается в массиве items
   const itemWithRevision = {
     ...item,
     needsRevision: calculateNeedsRevision(item),
@@ -167,7 +150,6 @@ app.get("/items/:id", (req, res) => {
   });
 });
 
-// 3. PUT /items/:id - Полная замена объявления
 app.put("/items/:id", (req, res) => {
   const { id } = req.params;
   const itemIndex = itemsDB.findIndex((i) => i.id === id);
@@ -178,10 +160,9 @@ app.put("/items/:id", (req, res) => {
 
   const { category, title, description, price, params } = req.body;
 
-  // Создаем обновленный объект, сохраняя старый ID и createdAt
   const updatedItem = {
     id,
-    createdAt: itemsDB[itemIndex].createdAt, // Дата создания не меняется
+    createdAt: itemsDB[itemIndex].createdAt,
     category,
     title,
     description: description || "",
@@ -189,10 +170,8 @@ app.put("/items/:id", (req, res) => {
     params: params || {},
   };
 
-  // Заменяем в "базе"
   itemsDB[itemIndex] = updatedItem;
 
-  // Возвращаем обновленный элемент (с вычисленным needsRevision для удобства фронта)
   res.json({
     ...updatedItem,
     needsRevision: calculateNeedsRevision(updatedItem),
@@ -268,7 +247,6 @@ app.post("/items/generate-ai", async (req, res) => {
   }
 });
 
-// Запуск сервера
 app.listen(PORT, () => {
   console.log(`Сервер запущен на http://localhost:${PORT}`);
 });

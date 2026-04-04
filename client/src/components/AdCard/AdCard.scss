@@ -1,164 +1,167 @@
-// --- ТВОИ ПЕРЕМЕННЫЕ (ТЕПЕРЬ ДИНАМИЧЕСКИЕ) ---
-:root {
-  --card-bg: #ffffff;
-  --card-text-main: #333333;
-  --card-text-price: #000000;
-  --card-text-secondary: #8c8c8c;
-  --card-border: #e8e8e8;
-  --card-img-bg: #f5f5f5;
-  --card-shadow: rgba(0, 0, 0, 0.1);
-  --card-shadow-hover: rgba(0, 0, 0, 0.08);
-
-  // Статусы (оставляем сочными)
-  --status-orange: #ff9800;
-  --status-bg: #fff3e0;
-}
-
-body.dark-theme {
-  --card-bg: #1f1f1f;
-  --card-text-main: #eeeeee;
-  --card-text-price: #ffffff;
-  --card-text-secondary: #a0a0a0;
-  --card-border: #303030;
-  --card-img-bg: #2a2a2a;
-  --card-shadow: rgba(0, 0, 0, 0.3);
-  --card-shadow-hover: rgba(0, 0, 0, 0.4);
-
-  --status-bg: #332b1f; // Темный фон для оранжевого бейджа
-}
+@import "../../helpers/helpers";
 
 .ad-card {
-  background: var(--card-bg); // Юзаем переменную
-  border-radius: 12px;
+  background: var(--card-bg);
+  border-radius: rem(12);
   overflow: hidden;
-  box-shadow: 0 1px 3px var(--card-shadow);
+  box-shadow: 0 rem(1) rem(3) var(--shadow);
   display: flex;
   flex-direction: column;
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease,
-    background-color 0.2s ease; // Добавил плавность смены темы
+    background-color 0.2s ease;
   height: 100%;
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px var(--card-shadow-hover);
+    transform: translateY(rem(-2));
+    box-shadow: 0 rem(4) rem(12) var(--shadow);
   }
 
   &__image-container {
-    height: 160px;
+    height: rem(160);
     background-color: var(--card-img-bg);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 40px;
-    color: #cccccc;
+    font-size: rem(40);
+    color: var(--text-secondary);
     flex-shrink: 0;
   }
 
   &__info {
-    padding: 16px;
+    padding: rem(16);
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: rem(12);
     flex-grow: 1;
   }
 
   &__main-content {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: rem(6);
   }
 
   &__category-tag {
-    font-size: 11px;
-    color: var(--card-text-secondary);
-    border: 1px solid var(--card-border);
-    border-radius: 4px;
-    padding: 2px 8px;
+    font-size: rem(11);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: rem(4);
+    padding: rem(2) rem(8);
     align-self: flex-start;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: rem(0.5);
   }
 
   &__title {
-    font-size: 14px;
+    font-size: rem(14);
     font-weight: 400;
     margin: 0;
     line-height: 1.4;
-    color: var(--card-text-main);
+    color: var(--text-main);
   }
 
   &__price-section {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: rem(8);
     margin-top: auto;
   }
 
   &__price {
-    font-size: 18px;
+    font-size: rem(18);
     font-weight: 700;
     margin: 0;
-    color: var(--card-text-price);
+    color: var(--primary-blue);
   }
 
   &__badge {
-    font-size: 12px;
-    color: var(--status-orange);
+    font-size: rem(12);
+    color: var(--ai-gold);
     background: var(--status-bg);
-    padding: 4px 10px;
-    border-radius: 6px;
+    padding: rem(4) rem(10);
+    border-radius: rem(6);
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: rem(6);
     align-self: flex-start;
+    justify-content: center;
+
+    .is-list & {
+      @include mobile {
+        align-self: center;
+      }
+    }
 
     &-dot {
-      width: 6px;
-      height: 6px;
-      background-color: var(--status-orange);
+      width: rem(6);
+      height: rem(6);
+      background-color: var(--ai-gold);
       border-radius: 50%;
     }
   }
 
-  // --- ТВОЯ ЛОГИКА ДЛЯ СПИСКА ---
   .is-list & {
     flex-direction: row;
-    height: 140px;
+    height: rem(140);
     align-items: center;
 
+    @include mobile {
+      flex-direction: column;
+      height: auto;
+    }
+
     .ad-card__image-container {
-      width: 200px;
+      width: rem(200);
       height: 100%;
-      border-radius: 12px 0 0 12px;
+      border-radius: rem(12) 0 0 rem(12);
+
+      @include mobile {
+        width: 100%;
+        height: rem(160);
+        border-radius: rem(12) rem(12) 0 0;
+      }
     }
 
     .ad-card__info {
       flex-direction: column;
-      padding: 0 32px;
-      gap: 10px;
+      align-items: flex-start;
+      padding: 0 rem(12);
+      gap: rem(20);
+
+      @include mobile {
+        padding: rem(16);
+        align-items: center;
+      }
     }
 
     .ad-card__main-content {
       flex: 1;
-      max-width: 50%;
+      max-width: 60%;
+
+      @include mobile {
+        max-width: 100%;
+      }
     }
 
     .ad-card__price-section {
-      flex-direction: row-reverse;
-      align-items: center;
-      gap: 20px;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: rem(8);
       margin-top: 0;
-      min-width: fit-content;
+      min-width: rem(140);
+
+      @include mobile {
+        align-items: flex-start;
+        flex-direction: row-reverse;
+        justify-content: 间-between;
+        width: 100%;
+      }
     }
 
     .ad-card__price {
-      font-size: 20px;
-    }
-
-    .ad-card__badge {
-      margin-top: 0;
+      font-size: rem(20);
     }
   }
 }

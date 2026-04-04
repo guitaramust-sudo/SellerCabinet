@@ -1,74 +1,11 @@
-// --- ПЕРЕМЕННЫЕ (Теперь динамические) ---
-:root {
-  --bg-color: #f6f6f6;
-  --primary-color: #ffcc00;
-  --border-color: #e2e2e2;
-  --text-main: #000;
-  --text-secondary: #8c8c8c;
-  --white: #fff;
-  --switch-active: #f0f0f0;
-}
-
-// Эти стили должны быть ВНЕ любых селекторов компонентов
-html,
-body,
-#root {
-  // Растягиваем на всю высоту экрана, чтобы не было белых полос снизу
-  min-height: 100vh;
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  // Плавный переход, чтобы глазам было приятно при переключении
-  transition:
-    background-color 0.3s ease,
-    color 0.3s ease;
-
-  // Дефолтный фон для светлой темы
-  background-color: #f5f5f5;
-  color: #1a1a1a;
-
-  &.dark-theme {
-    // Используй ровно тот же цвет, что в переменных ProductViewPage
-    background-color: #141414;
-    color: #eeeeee;
-  }
-}
-
-// Убедись, что #root не перекрывает фон своим цветом
-#root {
-  background-color: inherit;
-}
-
-// Когда на body висит этот класс, переменные меняют значения
-body.dark-theme {
-  --bg-color: #141414;
-  --primary-color: #ffcc00;
-  --border-color: #303030;
-  --text-main: #ffffff;
-  --text-secondary: #a0a0a0;
-  --white: #1f1f1f;
-  --switch-active: #333333;
-}
-
-$base-size: 16;
-
-@function rem($px) {
-  @return ($px / $base-size) * 1rem;
-}
-
-* {
-  text-decoration: none;
-  box-sizing: border-box;
-}
+@import "../../helpers/helpers";
 
 .ads-page {
   min-height: 100vh;
-  background-color: var(--bg-color); // Юзаем переменную
-  color: var(--text-main); // Юзаем переменную
+  background-color: var(--bg-main);
+  color: var(--text-main);
   padding: rem(40) rem(20);
-  transition: all 0.2s ease; // Чтоб плавно переключалось
+  transition: all 0.2s ease;
 
   @media (max-width: 768px) {
     padding: rem(20) rem(10);
@@ -108,9 +45,9 @@ $base-size: 16;
     input {
       width: 100%;
       padding: rem(12) rem(16);
-      background-color: var(--white);
+      background-color: var(--whitegr);
       color: var(--text-main);
-      border: 1px solid var(--border-color);
+      border: 1px solid var(--card-border);
       border-radius: rem(8);
       font-size: rem(14);
       transition: all 0.2s;
@@ -164,7 +101,7 @@ $base-size: 16;
     padding: rem(8) rem(16);
     border-radius: rem(8);
     border: 1px solid var(--border-color);
-    background: var(--white);
+    background: var(--bg-main);
     color: var(--text-main);
     cursor: pointer;
     font-size: rem(14);
@@ -199,6 +136,10 @@ $base-size: 16;
 
     &.is-list {
       grid-template-columns: 1fr;
+
+      .ad-card {
+        min-height: rem(200);
+      }
     }
   }
 
@@ -246,7 +187,7 @@ $base-size: 16;
     &--active {
       background: var(--primary-color);
       border-color: var(--primary-color);
-      color: #000; // На желтом черный лучше читается
+      color: #000;
       font-weight: 600;
     }
   }
