@@ -142,7 +142,7 @@
     top: 0;
     left: calc(100% + rem(24));
     width: rem(380);
-    background: var(--ai-popup-bg);
+    background: var(--ai-bg);
     color: var(--edit-text-main);
     border-radius: rem(16);
     box-shadow: 0 rem(10) rem(40) rgba(0, 0, 0, 0.2);
@@ -157,7 +157,6 @@
       top: 20%;
       bottom: 20%;
       width: rem(4);
-      background: var(--ai-gradient);
       border-radius: 0 rem(4) rem(4) 0;
     }
 

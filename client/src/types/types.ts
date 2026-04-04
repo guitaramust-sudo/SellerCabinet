@@ -6,6 +6,7 @@ export interface AutoParams {
   yearOfManufacture: number;
   transmission: "manual" | "automatic";
   mileage: number;
+  enginePower: number;
 }
 
 export interface RealEstateParams {
@@ -16,6 +17,8 @@ export interface RealEstateParams {
 }
 
 export interface ElectronicsParams {
+  brand: string;
+  model: string;
   type: string;
   condition: "new" | "used";
   color?: string;

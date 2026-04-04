@@ -173,6 +173,7 @@ export const AdEditPage = () => {
     e.preventDefault();
     setFormError(null);
 
+    // Валидация основных полей
     if (
       priceError ||
       !formData.title ||
@@ -187,12 +188,15 @@ export const AdEditPage = () => {
       .filter((f) => f.type === "number")
       .map((f) => f.key);
 
+    // ФИКС: Очистка объекта от пустых значений
     const preparedParams = Object.entries(formData.params).reduce(
       (acc, [key, value]) => {
+        // Если значение пустое, null или undefined — пропускаем итерацию (не добавляем в acc)
         if (value === "" || value === null || value === undefined) {
-          acc[key] = "";
           return acc;
         }
+
+        // Если значение есть, приводим к числу если нужно и сохраняем
         acc[key] = numericKeys.includes(key) ? Number(value) : value;
         return acc;
       },
@@ -205,7 +209,7 @@ export const AdEditPage = () => {
         description: formData.description,
         category: formData.category as Category,
         price: Number(formData.price),
-        params: preparedParams,
+        params: preparedParams, // Здесь теперь только заполненные ключи
       } as Partial<AdItem>;
 
       await updateAd({ id: id!, body }).unwrap();
@@ -276,14 +280,25 @@ export const AdEditPage = () => {
             <div className="input-group">
               <label>Категория</label>
               <select
+                className={
+                  touchedFields.category && !formData.category
+                    ? "input-error"
+                    : ""
+                }
                 value={formData.category}
                 onChange={(e) => updateField("category", e.target.value)}
+                onBlur={() => handleBlur("category")}
               >
                 <option value="">Выберите категорию</option>
                 <option value="electronics">Электроника</option>
                 <option value="auto">Авто</option>
                 <option value="real_estate">Недвижимость</option>
               </select>
+              {touchedFields.category && !formData.category && (
+                <span className="error-message">
+                  Категория должна быть выбрана
+                </span>
+              )}
             </div>
 
             <div className="input-group">
@@ -300,6 +315,11 @@ export const AdEditPage = () => {
                 onBlur={() => handleBlur("title")}
                 required
               />
+              {touchedFields.title && !formData.title && (
+                <span className="error-message">
+                  Название должно быть заполнено
+                </span>
+              )}
             </div>
 
             <div className="input-group price-group">
@@ -326,6 +346,11 @@ export const AdEditPage = () => {
                   required
                 />
               </div>
+              {(priceError || (touchedFields.price && !formData.price)) && (
+                <span className="error-message">
+                  {priceError || "Цена должна быть заполнена"}
+                </span>
+              )}
               <button
                 type="button"
                 className={`ai-btn ${isPriceLoading ? "ai-btn--loading" : ""}`}
@@ -354,7 +379,9 @@ export const AdEditPage = () => {
                     {field.type === "select" ? (
                       <select
                         value={formData.params[field.key] ?? ""}
-                        onChange={(e) => updateParam(field.key, e.target.value)}
+                        onChange={(e) =>
+                          updateParam(field.key, e.target.value ?? "")
+                        }
                       >
                         <option value="">Не выбрано</option>
                         {field.options?.map((opt) => (
@@ -366,7 +393,7 @@ export const AdEditPage = () => {
                     ) : (
                       <input
                         type={field.type === "number" ? "number" : "text"}
-                        min={field.type === "number" ? "0" : undefined}
+                        min={field.type === "number" ? "0" : ""}
                         onKeyDown={
                           field.type === "number"
                             ? (e) => {
@@ -380,7 +407,9 @@ export const AdEditPage = () => {
                             : undefined
                         }
                         value={formData.params[field.key] ?? ""}
-                        onChange={(e) => updateParam(field.key, e.target.value)}
+                        onChange={(e) =>
+                          updateParam(field.key, e.target.value ?? "")
+                        }
                       />
                     )}
                   </div>
@@ -406,7 +435,7 @@ export const AdEditPage = () => {
                 value={formData.description}
                 onChange={(e) => updateField("description", e.target.value)}
                 maxLength={1000}
-                placeholder="Введите описание товара..."
+                placeholder="Введите описание товара чтобы ИИ могла помочь его улучшить..."
               />
             </div>
           </div>

@@ -64,6 +64,7 @@ export const AIChat: React.FC<AIChatProps> = ({ ad }) => {
         ...newMessages,
         { role: "assistant", content: data.result },
       ]);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       setMessages([
         ...newMessages,

@@ -34,13 +34,15 @@
   {
     "id": 3,
     "category": "real_estate",
-    "title": "самый дорогой товар на Земле",
+    "title": "nn",
     "description": "ojijloj",
-    "price": 99999998,
+    "price": 69696,
     "createdAt": "2026-03-10T00:00:00.000Z",
-    "updatedAt": "2026-04-04T12:58:51.405Z",
+    "updatedAt": "2026-04-04T14:16:08.319Z",
     "params": {
       "type": "flat",
+      "address": "jfnjfn3",
+      "area": 32331,
       "floor": 13
     }
   },
@@ -262,8 +264,15 @@
     "description": "Это уникальный продукт, который предназначен для обеспечения безопасного хранения и транспортировки различных предметов в доме или офисе. Он идеально подходит для тех, кто ценит комфорт и практичность в своей жизни.\n\nПреимущества:\n- Удобство использования\n- Высокое качество материалов\n- Простота монтажа",
     "price": 33839833,
     "createdAt": "2026-03-11T00:00:00.000Z",
-    "updatedAt": "2026-04-04T12:59:48.827Z",
-    "params": {}
+    "updatedAt": "2026-04-04T13:46:36.000Z",
+    "params": {
+      "brand": "mgmkgm",
+      "model": "kgmkgm",
+      "yearOfManufacture": 33,
+      "transmission": "automatic",
+      "mileage": 4094,
+      "enginePower": 434
+    }
   },
   {
     "id": 21,
@@ -279,13 +288,15 @@
     "id": 22,
     "category": "electronics",
     "title": "Игровой монстр",
-    "description": "",
-    "price": 11990,
+    "description": " льльььа",
+    "price": 1999,
     "createdAt": "2026-03-07T00:00:00.000Z",
-    "updatedAt": "2026-03-07T00:00:00.000Z",
+    "updatedAt": "2026-04-04T14:56:44.422Z",
     "params": {
-      "type": "misc",
-      "color": "Красный"
+      "type": "phone",
+      "brand": "mmjij",
+      "model": "mmumukmu",
+      "condition": "new"
     }
   },
   {
@@ -303,16 +314,13 @@
   },
   {
     "id": 24,
-    "category": "auto",
+    "category": "electronics",
     "title": "Для рыбалки самое то",
-    "description": "",
+    "description": "dddddddddddddddddddd",
     "price": 500000,
     "createdAt": "2026-03-10T00:00:00.000Z",
-    "updatedAt": "2026-04-04T12:16:01.026Z",
-    "params": {
-      "brand": "Lada",
-      "model": "Granta"
-    }
+    "updatedAt": "2026-04-04T14:55:48.524Z",
+    "params": {}
   },
   {
     "id": 25,

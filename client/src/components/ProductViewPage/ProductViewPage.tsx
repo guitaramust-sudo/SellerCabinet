@@ -23,14 +23,20 @@ export const ProductViewPage: React.FC = () => {
     !ad.description || ad.description.trim().length < 5;
 
   const getMissingFields = () => {
-    // Кастуем к Record<string, any>, чтобы TS не выносил мозг при обращении params[key]
     const params = (ad.params || {}) as Record<string, never>;
     const missing: string[] = [];
 
     const checks: Record<Category, string[]> = {
-      auto: ["brand", "model", "yearOfManufacture", "transmission", "mileage"],
+      auto: [
+        "brand",
+        "model",
+        "yearOfManufacture",
+        "transmission",
+        "mileage",
+        "enginepower",
+      ],
       real_estate: ["type", "address", "area", "floor"],
-      electronics: ["type", "condition"],
+      electronics: ["type", "condition", "model", "brand", "color"],
     };
 
     const fieldsToHistory = checks[ad.category as Category] || [];

@@ -1,0 +1,26 @@
+{
+  "name": "sellercabinet",
+  "version": "1.0.0",
+  "description": "Avito test task",
+  "main": "index.js",
+  "scripts": {
+    "dev:client": "npm run dev --prefix client",
+    "dev:server": "npm run dev --prefix server",
+    "dev:ai": "npm run dev --prefix server2",
+    "start": "concurrently \"npm run dev:client\" \"npm run dev:server\" \"npm run dev:ai\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/guitaramust-sudo/SellerCabinet.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/guitaramust-sudo/SellerCabinet/issues"
+  },
+  "homepage": "https://github.com/guitaramust-sudo/SellerCabinet#readme",
+  "dependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
