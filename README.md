@@ -10,11 +10,11 @@
 
 | Список объявлений (Светлая тема) | Карточка товара (Тёмная тема) |
 |:---:|:---:|
-| !(client/assets/images/1.png) | !(client/assets/images/2.png) |
+| ![](client/assets/images/1.png) | ![](client/assets/images/2.png) |
 
 | Редактирование и AI-чат | Мобильная адаптация |
 |:---:|:---:|
-| !(client/assets/images/3.png) | !(client/assets/images/4.png) |
+| ![](client/assets/images/3.png) | ![](client/assets/images/4.png) |
 
 ---
 
