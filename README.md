@@ -10,17 +10,17 @@
 
 | Список объявлений (Светлая тема) | Карточка товара (Тёмная тема) |
 |:---:|:---:|
-| [Место под скриншот 1] | [Место под скриншот 2] |
+| !(client/assets/images/1.png) | !(client/assets/images/2.png) |
 
 | Редактирование и AI-чат | Мобильная адаптация |
 |:---:|:---:|
-| [Место под скриншот 3] | [Место под скриншот 4] |
+| !(client/assets/images/3.png) | !(client/assets/images/4.png) |
 
 ---
 
 ## Технологический стек
 
-* **Frontend:** React 18, TypeScript.
+* **Frontend:** React, TypeScript.
 * **Система сборки:** Vite (обеспечивает мгновенный Hot Module Replacement).
 * **State Management:** RTK Query (для эффективной работы с API и кеширования).
 * **UI Library:** Ant Design (AntD).
