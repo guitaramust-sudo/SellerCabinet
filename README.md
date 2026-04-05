@@ -53,7 +53,7 @@
 ### Способ 1: Docker Compose 
 Команда поднимет клиент, основной бэкенд и AI-сервис:
 ```bash
-docker-compose up --build -d
+docker compose up --build -d
 ```
 * Client: `http://localhost:3000`
 * Backend API: `http://localhost:8080`
