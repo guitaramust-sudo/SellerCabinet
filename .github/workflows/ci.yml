@@ -18,11 +18,11 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build and Start Containers
-        run: docker-compose up --build -d
+        run: docker compose up --build -d
 
       - name: Check running containers
         run: docker ps
 
       - name: View backend logs on failure
         if: failure()
-        run: docker-compose logs server
+        run: docker compose logs server
