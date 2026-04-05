@@ -50,7 +50,7 @@
 
 Для работы AI-функций необходимо установить [Ollama](https://ollama.com/) и скачать модель командой `ollama pull llama3`.
 
-### Способ 1: Docker Compose (Рекомендуемый)
+### Способ 1: Docker Compose 
 Команда поднимет клиент, основной бэкенд и AI-сервис:
 ```bash
 docker-compose up --build -d
