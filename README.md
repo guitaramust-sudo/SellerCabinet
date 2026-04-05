@@ -21,7 +21,7 @@
 ## Технологический стек
 
 * **Frontend:** React, TypeScript.
-* **Система сборки:** Vite (обеспечивает мгновенный Hot Module Replacement).
+* **Система сборки:** Vite.
 * **State Management:** RTK Query (для эффективной работы с API и кеширования).
 * **UI Library:** Ant Design (AntD).
 * **Styling:** SCSS (BEM), AntD Design Token (для динамической смены тем).
