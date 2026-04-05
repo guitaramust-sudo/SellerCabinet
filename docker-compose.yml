@@ -1,0 +1,24 @@
+services:
+  client:
+    build: ./client
+    container_name: ads-client
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - server
+      - server2
+
+  server:
+    build: ./server
+    container_name: ads-server
+    restart: always
+    ports:
+      - "3001:3001"
+
+  server2:
+    build: ./server2
+    container_name: ads-server2
+    restart: always
+    ports:
+      - "8080:8080"

@@ -33,7 +33,7 @@ export const ProductViewPage: React.FC = () => {
         "yearOfManufacture",
         "transmission",
         "mileage",
-        "enginepower",
+        "enginePower",
       ],
       real_estate: ["type", "address", "area", "floor"],
       electronics: ["type", "condition", "model", "brand", "color"],

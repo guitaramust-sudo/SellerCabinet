@@ -2,7 +2,6 @@ const express = require("express");
 const cors = require("cors");
 
 const app = express();
-// Порт 3001, чтобы не конфликтовать с основным бэкендом (8080)
 const PORT = process.env.AI_PORT || 3001;
 
 app.use(cors());
