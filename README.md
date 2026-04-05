@@ -10,18 +10,18 @@
 
 | Список объявлений (Светлая тема) | Карточка товара (Тёмная тема) |
 |:---:|:---:|
-| [Место под скриншот 1] | [Место под скриншот 2] |
+| ![](client/src/assets/images/1.png) | ![](client/src/assets/images/2.png) |
 
 | Редактирование и AI-чат | Мобильная адаптация |
 |:---:|:---:|
-| [Место под скриншот 3] | [Место под скриншот 4] |
+| ![](client/src/assets/images/3.png) | ![](client/src/assets/images/4.png) |
 
 ---
 
 ## Технологический стек
 
-* **Frontend:** React 18, TypeScript.
-* **Система сборки:** Vite (обеспечивает мгновенный Hot Module Replacement).
+* **Frontend:** React, TypeScript.
+* **Система сборки:** Vite.
 * **State Management:** RTK Query (для эффективной работы с API и кеширования).
 * **UI Library:** Ant Design (AntD).
 * **Styling:** SCSS (BEM), AntD Design Token (для динамической смены тем).
@@ -50,7 +50,7 @@
 
 Для работы AI-функций необходимо установить [Ollama](https://ollama.com/) и скачать модель командой `ollama pull llama3`.
 
-### Способ 1: Docker Compose (Рекомендуемый)
+### Способ 1: Docker Compose 
 Команда поднимет клиент, основной бэкенд и AI-сервис:
 ```bash
 docker-compose up --build -d
@@ -66,7 +66,7 @@ docker-compose up --build -d
 
 ---
 
-## План доработок (Backlog)
+## План доработок 
 
 1.  **Добавление новых объявлений:** Реализация формы создания товара с нуля.
 2.  **Визуальный Diff:** Отображение сравнения текста «Было/Стало» при генерации описания нейросетью.
